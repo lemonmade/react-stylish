@@ -1,0 +1,19 @@
+{
+  "env": {
+    "es6": true,
+    "mocha": true
+  },
+
+  "globals": {
+    "expect": false,
+    "sinon": false
+  },
+
+  "rules": {
+    // expect has some of these, like expect().to.be.empty
+    "no-unused-expressions": 0,
+
+    // need to put things in scope for beforeEach
+    "init-declarations": 0
+  }
+}
