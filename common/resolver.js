@@ -39,6 +39,15 @@ function visitStrategy({depth, React}) {
   };
 }
 
+function nextMouseupListener(callback) {
+  function handler(event) {
+    callback(event);
+    window.removeEventListener('mouseup', handler);
+  }
+
+  window.addEventListener('mouseup', handler);
+}
+
 function resolveInteractionStyles({component, props, context, styles}) {
   let interactions = styles.interactions[component];
   if (!interactions) { return; }
@@ -80,6 +89,37 @@ function resolveInteractionStyles({component, props, context, styles}) {
       if (originalOnBlur) { originalOnBlur.call(this, event); }
       setState('focus', false);
     };
+  }
+
+  if (interactions.active) {
+    const KEYS_FOR_ACTIVE = [' ', 'enter'];
+
+    let originalOnKeyDown = props.onKeyDown;
+    props.onKeyDown = function(event) {
+      if (originalOnKeyDown) { originalOnKeyDown.call(this, event); }
+      if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
+        setState('active', true);
+      }
+    };
+
+    let originalOnKeyUp = props.onKeyUp;
+    props.onKeyUp = function(event) {
+      if (originalOnKeyUp) { originalOnKeyUp.call(this, event); }
+      if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
+        setState('active', false);
+      }
+    };
+
+    let originalOnMouseDown = props.onMouseDown;
+    props.onMouseDown = function(event) {
+      if (originalOnMouseDown) { originalOnMouseDown.call(this, event); }
+      setState('active', true);
+    };
+
+    let stylishState = context.state && context.state._StylishState;
+    if (stylishState && stylishState.active[component]) {
+      nextMouseupListener(() => setState('active', false));
+    }
   }
 }
 

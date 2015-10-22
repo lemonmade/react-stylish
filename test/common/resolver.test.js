@@ -255,6 +255,121 @@ describe('resolver', () => {
         expect(blur).to.have.been.calledWith(event);
       });
     });
+
+    describe('with active', () => {
+      beforeEach(() => {
+        styles.interactions.base = {active: true};
+        sinon.stub(context, 'setState');
+      });
+
+      it('adds an onKeyDown listener', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+        expect(rendered.props.onKeyDown).to.be.a('function');
+      });
+
+      it('calls setState on keyDown with the active status of that component set to true when the key is space', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyDown({key: ' '});
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.true;
+      });
+
+      it('calls setState on keyDown with the active status of that component set to true when the key is Enter', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyDown({key: 'Enter'});
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.true;
+      });
+
+      it('does not call setState on keyDown when the key is anything else', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyDown({key: 'A'});
+        expect(context.setState).to.not.have.been.called;
+      });
+
+      it('keyDown overrides and calls an originally-set onKeyDown handler', () => {
+        let keyDown = sinon.spy();
+        let event = {key: 'A'};
+        rendered = resolve({rendered: <div styled="base" onKeyDown={keyDown} />, styles, context});
+
+        rendered.props.onKeyDown(event);
+        expect(keyDown).to.have.been.calledWith(event);
+      });
+
+      it('adds an onKeyUp listener', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+        expect(rendered.props.onKeyUp).to.be.a('function');
+      });
+
+      it('calls setState on keyUp with the active status of that component set to false when the key is space', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyUp({key: ' '});
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.false;
+      });
+
+      it('calls setState on keyUp with the active status of that component set to false when the key is Enter', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyUp({key: 'Enter'});
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.false;
+      });
+
+      it('does not call setState on keyUp when the key is anything else', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onKeyDown({key: 'A'});
+        expect(context.setState).to.not.have.been.called;
+      });
+
+      it('keyUp overrides and calls an originally-set onKeyUp handler', () => {
+        let keyUp = sinon.spy();
+        let event = {key: 'A'};
+        rendered = resolve({rendered: <div styled="base" onKeyUp={keyUp} />, styles, context});
+
+        rendered.props.onKeyUp(event);
+        expect(keyUp).to.have.been.calledWith(event);
+      });
+
+      it('adds an onMouseDown listener', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+        expect(rendered.props.onMouseDown).to.be.a('function');
+      });
+
+      it('calls setState on mouseDown with the active status of that component set to true', () => {
+        rendered = resolve({rendered: <div styled="base" />, styles, context});
+
+        rendered.props.onMouseDown({x: 0, y: 0});
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.true;
+      });
+
+      it('overrides and calls an originally-set onMouseDown handler', () => {
+        let mouseDown = sinon.spy();
+        let event = {x: 0, y: 0};
+        rendered = resolve({rendered: <div styled="base" onMouseDown={mouseDown} />, styles, context});
+
+        rendered.props.onMouseDown(event);
+        expect(mouseDown).to.have.been.calledWith(event);
+      });
+
+      it('sets the active state to false on mouseUp', () => {
+        context.state = {_StylishState: {active: {base: true}}};
+        resolve({rendered: <div styled="base" />, styles, context});
+
+        let event = document.createEvent('MouseEvents');
+        event.initEvent('mouseup', true, true);
+        document.body.dispatchEvent(event);
+
+        let newState = context.setState.lastCall.args[0];
+        expect(newState._StylishState.active.base).to.be.false;
+      });
+    });
   });
 
   describe('with options', () => {
