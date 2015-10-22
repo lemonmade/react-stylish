@@ -123,6 +123,8 @@ function resolveInteractionStyles({component, props, context, styles}) {
   }
 }
 
+const IDENTIFIER_SPLITTER = /\s+/;
+
 function resolveProps({element, context, styles, options}) {
   let {identifier} = options;
 
@@ -130,7 +132,9 @@ function resolveProps({element, context, styles, options}) {
   if (!name) { return element.props; }
 
   let props = {...element.props};
-  let rules = styles.for(name, options.variationMapping);
+  let rules = _.flatten(name.split(IDENTIFIER_SPLITTER).map((id) => {
+    return styles.for(id, options.variationMapping);
+  }));
 
   if (props.style) {
     rules.push(props.style);

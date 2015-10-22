@@ -109,6 +109,16 @@ describe('resolver', () => {
     expect(rendered.props.style).to.deep.equal(_.flatten([RULES.base, customStyle]));
   });
 
+  it('attaches styles from multiple styled strings', () => {
+    rendered = resolve({rendered: <div styled="base nested" />, styles, context});
+    expect(rendered.props.style).to.deep.equal(_.flatten([RULES.base, RULES.nested]));
+  });
+
+  it('ignores styled strings that do not have rules', () => {
+    rendered = resolve({rendered: <div styled="base foo" />, styles, context});
+    expect(rendered.props.style).to.deep.equal([RULES.base]);
+  });
+
   it('allows you to pass a custom identifier prop', () => {
     rendered = resolve({rendered: <div is="base"><div styled="nested" /></div>, styles, options: {identifier: 'is'}, context});
     expect(rendered.props.style).to.deep.equal([RULES.base]);
