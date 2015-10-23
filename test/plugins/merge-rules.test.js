@@ -15,14 +15,11 @@ describe('plugins', () => {
       expect(result).to.deep.equal({color: 'orange', backgroundColor: 'blue'});
     });
 
-    describe('options', () => {
-      it('only applies to react DOM', () => {
-        expect(mergeRules.options.react).to.equal('dom');
-      });
-
-      it('only applies in the create stage', () => {
-        expect(mergeRules.options.stage).to.equal('attach');
-      });
+    it('only applies to React DOM', () => {
+      let rules = [{color: 'red'}, {backgroundColor: 'blue'}, {color: 'orange'}];
+      let rulesCopy = [...rules];
+      let result = mergeRules({rules, isDom: false});
+      expect(result).to.deep.equal(rulesCopy);
     });
   });
 });

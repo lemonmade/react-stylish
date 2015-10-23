@@ -1,4 +1,5 @@
 import '../helper';
+import React from 'react-native';
 import Stylish from '../../native';
 import * as SeparateStylish from '../../native';
 import Plugins from '../../plugins';
@@ -19,7 +20,9 @@ describe('Stylish native', () => {
     expect(Stylish.Plugins).to.equal(Plugins);
   });
 
-  it('sets the react version to native', () => {
-    expect(config.react).to.equal('native');
+  it('sets the react version to Native', () => {
+    expect(config.React.Library).to.equal(React);
+    expect(config.React.isDom).to.be.false;
+    expect(config.React.isNative).to.be.true;
   });
 });

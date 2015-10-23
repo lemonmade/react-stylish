@@ -1,10 +1,12 @@
+import React from 'react-native';
+
 import connect from './connect';
 import Plugins from '../plugins';
 
 import create from '../common/create';
 import config from '../common/config';
 
-config.react = 'native';
+config.React.use(React, {native: true});
 
 export {
   connect,

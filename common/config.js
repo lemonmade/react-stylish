@@ -22,6 +22,17 @@ const config = {
     get attach() { return plugins.attach; },
   },
 
+  React: {
+    use(correctReact, {native = false, dom = false}) {
+      this.Library = correctReact;
+      this.isDom = dom;
+      this.isNative = native;
+    },
+
+    isDom: false,
+    isNative: false,
+  },
+
   identifier: 'styled',
   depth: 'smart',
 };

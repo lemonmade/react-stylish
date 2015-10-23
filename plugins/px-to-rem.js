@@ -9,7 +9,9 @@ const DEFAULT_EXCLUDES = [
   'textStrokeWidth',
 ];
 
-export default function pxToRem({rule, excluding = []}) {
+export default function pxToRem({rule, isDom = true, excluding = []}) {
+  if (!isDom) { return rule; }
+
   Object.keys(rule).forEach((ruleName) => {
     let val = rule[ruleName];
 
@@ -24,8 +26,6 @@ export default function pxToRem({rule, excluding = []}) {
 
   return rule;
 }
-
-pxToRem.options = {react: 'dom', stage: 'create'};
 
 pxToRem.excluding = function(...excluding) {
   return function(options) {

@@ -153,7 +153,9 @@ describe('resolver', () => {
     config.plugins.attach = plugin;
 
     rendered = resolve({rendered: <div styled="base" />, styles, context});
-    expect(plugin).to.have.been.calledWith({rules: [RULES.base]});
+
+    let pluginArg = plugin.lastCall.args[0];
+    expect(pluginArg.rules).to.deep.equal([RULES.base]);
     expect(rendered.props.style).to.deep.equal(output);
   });
 

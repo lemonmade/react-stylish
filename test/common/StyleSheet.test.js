@@ -19,12 +19,13 @@ describe('StyleSheet', () => {
 
   describe('adding rules', () => {
     let reactComponent;
+    let plugin;
     const ruleOne = objectRule;
     const ruleTwo = Object.freeze({color: 'blue'});
     const INTERACTION_STATES = ['hover', 'focus', 'active'];
 
     function addCreatePlugin() {
-      let plugin = sinon.stub().returns(ruleTwo);
+      plugin = sinon.stub().returns(ruleTwo);
       config.plugins.create = plugin;
     }
 
@@ -133,6 +134,10 @@ describe('StyleSheet', () => {
         stylesheet.add({[component]: objectRule}, {base: true});
         stylesheet.attach(reactComponent);
         expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
+
+        let pluginArg = plugin.lastCall.args[0];
+        expect(pluginArg).to.have.property('rule', objectRule);
+        expect(pluginArg).to.have.property('dynamic', false);
       });
 
       it('applies the create plugins to dynamic rules', () => {
@@ -140,6 +145,10 @@ describe('StyleSheet', () => {
         stylesheet.add({[component]: functionRule}, {base: true});
         stylesheet.attach(reactComponent);
         expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
+
+        let pluginArg = plugin.lastCall.args[0];
+        expect(pluginArg).to.have.property('rule', functionRuleResult);
+        expect(pluginArg).to.have.property('dynamic', true);
       });
 
       it('does not include interaction state rules in the base rule set', () => {

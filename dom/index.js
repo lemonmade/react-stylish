@@ -1,10 +1,12 @@
+import React from 'react';
+
 import connect from './connect';
 import Plugins from '../plugins';
 
 import create from '../common/create';
 import config from '../common/config';
 
-config.react = 'dom';
+config.React.use(React, {dom: true});
 
 export {
   connect,

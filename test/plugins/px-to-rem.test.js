@@ -12,11 +12,6 @@ describe('plugins', () => {
       textStrokeWidth: 1,
     });
 
-    it('returns the rule object', () => {
-      let rule = {padding: 32, width: 300};
-      expect(pxToRem({rule})).to.equal(rule);
-    });
-
     it('converts numbers to the associated rem amounts', () => {
       let rule = {padding: 32, width: 300};
 
@@ -40,6 +35,14 @@ describe('plugins', () => {
       });
     });
 
+    it('only applies to React DOM', () => {
+      let rule = {padding: 32, width: 300};
+      let ruleCopy = {...rule};
+
+      pxToRem({rule, isDom: false});
+      expect(rule).to.deep.equal(ruleCopy);
+    });
+
     describe('.excluding', () => {
       const customPxToRem = pxToRem.excluding('padding', 'margin');
 
@@ -56,7 +59,7 @@ describe('plugins', () => {
       it('still converts non-omitted properties', () => {
         let rule = {width: 300};
         customPxToRem({rule});
-        expect(rule.width).to.equal('18.75rem');
+        expect(rule).to.have.property('width', '18.75rem');
       });
 
       it('still omits pixel-required values', () => {
@@ -66,16 +69,6 @@ describe('plugins', () => {
         Object.keys(RULE_WITH_PX_PROPERTIES).forEach((property) => {
           expect(RULE_WITH_PX_PROPERTIES[property]).to.equal(rule[property]);
         });
-      });
-    });
-
-    describe('options', () => {
-      it('only applies to react DOM', () => {
-        expect(pxToRem.options.react).to.equal('dom');
-      });
-
-      it('only applies in the create stage', () => {
-        expect(pxToRem.options.stage).to.equal('create');
       });
     });
   });

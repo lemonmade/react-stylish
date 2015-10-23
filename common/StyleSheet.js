@@ -112,9 +112,9 @@ function depth(object) {
 
 function finalRuleResolution(rule) {
   if (_.isObject(rule)) {
-    return applyCreatePlugins({rule});
+    return applyCreatePlugins({rule, dynamic: false});
   } else if (_.isFunction(rule)) {
-    return (context) => applyCreatePlugins({rule: rule.call(context, context)});
+    return (context) => applyCreatePlugins({rule: rule.call(context, context), dynamic: true});
   } else {
     return rule;
   }

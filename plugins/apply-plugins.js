@@ -1,28 +1,31 @@
 import config from '../common/config';
 
-export function applyCreatePlugins({rule}) {
-  config.plugins.create.forEach((plugin) => {
-    let {options} = plugin;
-    if (options) {
-      if (options.react && options.react !== config.react) { return rule; }
-      if (options.stage && options.stage !== 'create') { return rule; }
-    }
+export function applyCreatePlugins({rule, dynamic = false}) {
+  let {isDom, isNative} = config.React;
 
-    rule = plugin({rule});
+  config.plugins.create.forEach((plugin) => {
+    rule = plugin({
+      rule,
+      isDom,
+      isNative,
+      dynamic,
+      React: config.React.Library,
+    });
   });
 
   return rule;
 }
 
 export function applyAttachPlugins({rules}) {
-  config.plugins.attach.forEach((plugin) => {
-    let {options} = plugin;
-    if (options) {
-      if (options.react && options.react !== config.react) { return rules; }
-      if (options.stage && options.stage !== 'attach') { return rules; }
-    }
+  let {isDom, isNative} = config.React;
 
-    rules = plugin({rules});
+  config.plugins.attach.forEach((plugin) => {
+    rules = plugin({
+      rules,
+      isDom,
+      isNative,
+      React: config.React.Library,
+    });
   });
 
   return rules;

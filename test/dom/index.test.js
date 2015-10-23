@@ -1,4 +1,5 @@
 import '../helper';
+import React from 'react';
 import Stylish from '../..';
 import * as SeparateStylish from '../..';
 import Plugins from '../../plugins';
@@ -20,6 +21,8 @@ describe('Stylish DOM', () => {
   });
 
   it('sets the react version to DOM', () => {
-    expect(config.react).to.equal('dom');
+    expect(config.React.Library).to.equal(React);
+    expect(config.React.isDom).to.be.true;
+    expect(config.React.isNative).to.be.false;
   });
 });
