@@ -1,8 +1,19 @@
 import '../helper';
-import pxToRem from '../../plugins/px-to-rem';
+import PxToRemPlugin from '../../plugins/px-to-rem';
 
 describe('plugins', () => {
-  describe('pxToRem', () => {
+  describe('PxToRemPlugin', () => {
+    let React;
+
+    function pxToRem(options) {
+      options.React = options.React || React;
+      return PxToRemPlugin.create(options);
+    }
+
+    beforeEach(() => {
+      React = {isDom: true};
+    });
+
     const RULE_WITH_PX_PROPERTIES = Object.freeze({
       borderWidth: 1,
       borderTopWidth: 1,
@@ -39,12 +50,17 @@ describe('plugins', () => {
       let rule = {padding: 32, width: 300};
       let ruleCopy = {...rule};
 
-      pxToRem({rule, isDom: false});
+      pxToRem({rule, React: {isDom: false}});
       expect(rule).to.deep.equal(ruleCopy);
     });
 
     describe('.excluding', () => {
-      const customPxToRem = pxToRem.excluding('padding', 'margin');
+      const CustomPxToRemPlugin = PxToRemPlugin.excluding('padding', 'margin');
+
+      function customPxToRem(options) {
+        options.React = options.React || React;
+        return CustomPxToRemPlugin.create(options);
+      }
 
       it('creates a plugin that excludes the specified properties', () => {
         let rule = {padding: 32, margin: 32};

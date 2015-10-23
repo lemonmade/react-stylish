@@ -1,8 +1,19 @@
 import '../helper';
-import mergeRules from '../../plugins/merge-rules';
+import MergeRulesPlugin from '../../plugins/merge-rules';
 
 describe('plugins', () => {
-  describe('mergeRules', () => {
+  describe('MergeRulesPlugin', () => {
+    let React;
+
+    function mergeRules(options) {
+      options.React = options.React || React;
+      return MergeRulesPlugin.attach(options);
+    }
+
+    beforeEach(() => {
+      React = {isDom: true};
+    });
+
     it('returns the rule if it is not an array', () => {
       let rules = {color: 'red'};
       let result = mergeRules({rules});
@@ -18,7 +29,7 @@ describe('plugins', () => {
     it('only applies to React DOM', () => {
       let rules = [{color: 'red'}, {backgroundColor: 'blue'}, {color: 'orange'}];
       let rulesCopy = [...rules];
-      let result = mergeRules({rules, isDom: false});
+      let result = mergeRules({rules, React: {isDom: false}});
       expect(result).to.deep.equal(rulesCopy);
     });
   });

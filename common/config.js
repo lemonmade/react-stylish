@@ -1,9 +1,9 @@
 import * as _ from './utilities';
-import {create, attach} from '../plugins';
+// import {create, attach} from '../plugins';
 
 const plugins = {
-  create,
-  attach,
+  create: [],
+  attach: [],
 };
 
 const config = {

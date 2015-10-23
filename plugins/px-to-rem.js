@@ -9,27 +9,33 @@ const DEFAULT_EXCLUDES = [
   'textStrokeWidth',
 ];
 
-export default function pxToRem({rule, isDom = true, excluding = []}) {
-  if (!isDom) { return rule; }
+const PxToRemPlugin = {
+  create({rule, React, excluding = []}) {
+    if (!React.isDom) { return rule; }
 
-  Object.keys(rule).forEach((ruleName) => {
-    let val = rule[ruleName];
+    Object.keys(rule).forEach((ruleName) => {
+      let val = rule[ruleName];
 
-    if (
-      !isNumber(val) ||
-      excluding.indexOf(ruleName) >= 0 ||
-      DEFAULT_EXCLUDES.indexOf(ruleName) >= 0
-    ) { return; }
+      if (
+        !isNumber(val) ||
+        excluding.indexOf(ruleName) >= 0 ||
+        DEFAULT_EXCLUDES.indexOf(ruleName) >= 0
+      ) { return; }
 
-    rule[ruleName] = `${val / 16}rem`;
-  });
+      rule[ruleName] = `${val / 16}rem`;
+    });
 
-  return rule;
-}
+    return rule;
+  },
 
-pxToRem.excluding = function(...excluding) {
-  return function(options) {
-    options.excluding = excluding;
-    return pxToRem(options);
-  };
+  excluding(...excluding) {
+    return {
+      create(options) {
+        options.excluding = excluding;
+        return PxToRemPlugin.create(options);
+      },
+    };
+  },
 };
+
+export default PxToRemPlugin;

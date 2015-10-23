@@ -1,19 +1,29 @@
 import '../helper';
-import reactStyleSheet from '../../plugins/react-stylesheet';
-
-let React = {
-  StyleSheet: {
-    create: sinon.spy((rules) => {
-      let newRules = {};
-      Object.keys(rules).forEach((name) => newRules[name] = 1);
-      return newRules;
-    }),
-  },
-};
+import ReactStyleSheetPlugin from '../../plugins/react-stylesheet';
 
 describe('plugins', () => {
-  describe('reactStyleSheet', () => {
+  describe('ReactStyleSheetPlugin', () => {
     const rule = Object.freeze({color: 'red'});
+    let React;
+
+    function reactStyleSheet(options) {
+      options.React = options.React || React;
+      return ReactStyleSheetPlugin.create(options);
+    }
+
+    beforeEach(() => {
+      React = {
+        StyleSheet: {
+          create: sinon.spy((rules) => {
+            let newRules = {};
+            Object.keys(rules).forEach((name) => newRules[name] = 1);
+            return newRules;
+          }),
+        },
+
+        isNative: true,
+      };
+    });
 
     it('returns the result of React.StyleSheet.create', () => {
       let result = reactStyleSheet({rule, React});
@@ -26,7 +36,8 @@ describe('plugins', () => {
     });
 
     it('does not apply if it is not React native', () => {
-      let result = reactStyleSheet({rule, React, isNative: false});
+      React.isNative = false;
+      let result = reactStyleSheet({rule, React});
       expect(result).to.deep.equal(rule);
     });
   });

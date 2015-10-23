@@ -16,7 +16,7 @@ module.exports = function(config) {
       'karma-chrome-launcher',
     ],
 
-    files: ['test/*/**.js'],
+    files: ['test/plugins/**.js'],
     preprocessors: {
       'test/*/**.js': ['webpack'],
     },

@@ -1,1 +1,3 @@
-export default function vendorPrefixes() {}
+const VendorPrefixPlugin = {};
+
+export default VendorPrefixPlugin;
