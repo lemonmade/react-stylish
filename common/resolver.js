@@ -39,90 +39,6 @@ function visitStrategy({depth, React}) {
   };
 }
 
-function nextMouseupListener(callback) {
-  function handler(event) {
-    callback(event);
-    window.removeEventListener('mouseup', handler);
-  }
-
-  window.addEventListener('mouseup', handler);
-}
-
-function resolveInteractionStyles({component, props, context, styles}) {
-  let interactions = styles.interactions[component];
-  if (!interactions) { return; }
-
-  function setState(interactionState, value) {
-    let existingState = context.state._StylishState || {};
-
-    context.setState({
-      _StylishState: {
-        ...existingState,
-        [interactionState]: {...existingState[interactionState], [component]: value},
-      },
-    });
-  }
-
-  if (interactions.hover) {
-    let originalOnMouseEnter = props.onMouseEnter;
-    props.onMouseEnter = function(event) {
-      if (originalOnMouseEnter) { originalOnMouseEnter.call(this, event); }
-      setState('hover', true);
-    };
-
-    let originalOnMouseLeave = props.onMouseLeave;
-    props.onMouseLeave = function(event) {
-      if (originalOnMouseLeave) { originalOnMouseLeave.call(this, event); }
-      setState('hover', false);
-    };
-  }
-
-  if (interactions.focus) {
-    let originalOnFocus = props.onFocus;
-    props.onFocus = function(event) {
-      if (originalOnFocus) { originalOnFocus.call(this, event); }
-      setState('focus', true);
-    };
-
-    let originalOnBlur = props.onBlur;
-    props.onBlur = function(event) {
-      if (originalOnBlur) { originalOnBlur.call(this, event); }
-      setState('focus', false);
-    };
-  }
-
-  if (interactions.active) {
-    const KEYS_FOR_ACTIVE = [' ', 'enter'];
-
-    let originalOnKeyDown = props.onKeyDown;
-    props.onKeyDown = function(event) {
-      if (originalOnKeyDown) { originalOnKeyDown.call(this, event); }
-      if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
-        setState('active', true);
-      }
-    };
-
-    let originalOnKeyUp = props.onKeyUp;
-    props.onKeyUp = function(event) {
-      if (originalOnKeyUp) { originalOnKeyUp.call(this, event); }
-      if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
-        setState('active', false);
-      }
-    };
-
-    let originalOnMouseDown = props.onMouseDown;
-    props.onMouseDown = function(event) {
-      if (originalOnMouseDown) { originalOnMouseDown.call(this, event); }
-      setState('active', true);
-    };
-
-    let stylishState = context.state && context.state._StylishState;
-    if (stylishState && stylishState.active[component]) {
-      nextMouseupListener(() => setState('active', false));
-    }
-  }
-}
-
 const IDENTIFIER_SPLITTER = /\s+/;
 
 function resolveProps({element, context, styles, options}) {
@@ -142,7 +58,6 @@ function resolveProps({element, context, styles, options}) {
 
   rules = applyAttachPlugins({rules});
   if (!_.isEmpty(rules)) { props.style = rules; }
-  resolveInteractionStyles({component: name, props, context, styles});
   return props;
 }
 

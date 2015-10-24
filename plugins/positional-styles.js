@@ -10,11 +10,14 @@ const positionalStateMatches = {
 const PositionalStylesPlugin = {
   add({rule}) {
     let {first, last, even, odd, ...base} = rule;
-    return {first, last, even, odd, base};
+    return POSITIONAL_STATES.reduce((result, state) => {
+      if (rule[state]) { result[state] = rule[state]; }
+      return result;
+    }, {base});
   },
 
   resolve({rules, React, index, parent}) {
-    let siblingCount = parent ? React.Children.count(parent.props.children) : 0;
+    let siblingCount = parent ? React.Children.count(parent.props.children) - 1 : 0;
 
     return POSITIONAL_STATES.filter((name) => {
       return positionalStateMatches[name](index, siblingCount) && rules[name];

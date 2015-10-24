@@ -69,13 +69,13 @@ module.exports = function(config) {
 
     coverageReporter: {
       dir: 'reports/coverage',
-      type: 'text',
-      // reporters: [
-      //   {type: 'text', subdir: '.', file: 'text.txt'},
-      //   {type: 'html', subdir: 'report-html'},
-      //   {type: 'lcov', subdir: 'report-lcov'},
-      //   {type: 'lcovonly', subdir: '.', file: 'report-lcovonly.txt'},
-      // ],
+      // type: 'text',
+      reporters: [
+        {type: 'text', subdir: '.', file: 'text.txt'},
+        {type: 'html', subdir: 'report-html'},
+        {type: 'lcov', subdir: 'report-lcov'},
+        {type: 'lcovonly', subdir: '.', file: 'report-lcovonly.txt'},
+      ],
     },
   });
 };

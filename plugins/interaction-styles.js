@@ -15,17 +15,23 @@ const InteractionStylesPlugin = {
   add({rule, component, stylesheet}) {
     let interactions = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
     INTERACTION_STATES.forEach((state) => {
-      interactions[state][component] = Boolean(rule[state]);
+      if (interactions[state][component] == null) {
+        interactions[state][component] = Boolean(rule[state]);
+      }
     });
-    cache[stylesheet] = interactions;
+    cache[stylesheet.id] = interactions;
 
     let {hover, focus, active, ...base} = rule;
-    return {hover, focus, active, base};
+
+    return INTERACTION_STATES.reduce((result, state) => {
+      if (rule[state]) { result[state] = rule[state]; }
+      return result;
+    }, {base});
   },
 
   resolve({rules, props, component, stylesheet, state, setState}) {
     let interactionState = state.interactions || {hover: {}, focus: {}, active: {}};
-    let statePresence = cache[stylesheet.id];
+    let statePresence = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
 
     function setInteractionState(stateName, value) {
       setState({
@@ -87,7 +93,7 @@ const InteractionStylesPlugin = {
         setInteractionState('active', true);
       };
 
-      if (state.active[component]) {
+      if (state.interactions.active[component]) {
         nextMouseupListener(() => setInteractionState('active', false));
       }
     }
@@ -98,6 +104,8 @@ const InteractionStylesPlugin = {
       return rules[name];
     });
   },
+
+  reset() { cache = {}; },
 };
 
 export default InteractionStylesPlugin;

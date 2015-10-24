@@ -1,15 +1,16 @@
 import * as _ from './utilities';
-import {applyCreatePlugins} from '../plugins/apply-plugins';
+// import {applyCreatePlugins} from '../plugins/apply-plugins';
+
+function applyCreatePlugins() {}
 
 const INTERACTION_STATES = ['hover', 'active', 'focus'];
 
+let stylesheetIndex = 1;
+
 class StyleSheet {
   constructor(baseRules = {}) {
-    this.componentRules = {};
-    this.variationRules = {};
-    this.interactions = {};
-    this.context = {};
-
+    this.rules = {base: {}};
+    this.id = stylesheetIndex++;
     if (Object.keys(baseRules).length) { this.add(baseRules, {base: true}); }
   }
 
@@ -17,8 +18,7 @@ class StyleSheet {
     Object.keys(rules).forEach((name) => {
       if (base) {
         let componentRules = resolveComponentRules(rules[name]);
-        checkInteractions(componentRules, name, this.interactions);
-        this.componentRules[name] = {name, rules: componentRules};
+        this.rules.base[name] = {name, rules: componentRules};
         this[name] = this.for(name);
         return;
       }
@@ -27,14 +27,13 @@ class StyleSheet {
       // Boolean properties are in the form {component: {rules}}
       // Non-boolean properties are in the form {val: {component: {rules}}}
       let isBoolean = depth(variationRules) < 3;
-      let variation = this.variationRules[name] || {name, isBoolean, rules: {}};
+      let variation = this.rules[name] || {name, isBoolean, rules: {}};
 
       if (isBoolean) {
         variation.rules.true = {};
 
         Object.keys(variationRules).forEach((component) => {
           let componentRules = resolveComponentRules(variationRules[component]);
-          checkInteractions(componentRules, component, this.interactions);
           variation.rules.true[component] = componentRules;
         });
       } else {
@@ -44,19 +43,16 @@ class StyleSheet {
 
           Object.keys(variationValueRules).forEach((component) => {
             let componentRules = resolveComponentRules(variationValueRules[component]);
-            checkInteractions(componentRules, component, this.interactions);
             variation.rules[variationValue][component] = componentRules;
           });
         });
       }
 
-      this.variationRules[name] = variation;
+      this.rules[name] = variation;
     });
 
     return this;
   }
-
-  attach(newContext) { this.context = newContext; }
 
   base(rules) {
     return this.add(rules, {base: true});
@@ -68,37 +64,6 @@ class StyleSheet {
 
   variations(rules) {
     return this.add(rules);
-  }
-
-  for(component, variationMapping = {}) {
-    let {componentRules, variationRules, context} = this;
-
-    componentRules = componentRules[component] && componentRules[component].rules;
-    let props = context.props || {};
-    let state = context.state || {};
-    let stylishState = state._StylishState;
-
-    let matchedRules = [];
-
-    matchedRules.push(...selectComponentRules(component, componentRules, stylishState, context));
-
-    Object.keys(variationRules).forEach((variationName) => {
-      let variation = variationRules[variationName];
-
-      let contextValue = (() => {
-        let {name} = variation;
-        if (variationMapping[name] != null) { return variationMapping[name]; }
-        if (state[name] != null) { return state[name]; }
-        return props[name];
-      })();
-
-      let variationValue = String(variation.isBoolean ? Boolean(contextValue) : contextValue);
-      let variationComponentRules = variation.rules[variationValue] && variation.rules[variationValue][component];
-
-      matchedRules.push(...selectComponentRules(component, variationComponentRules, stylishState, context));
-    });
-
-    return _.compact(matchedRules);
   }
 }
 
