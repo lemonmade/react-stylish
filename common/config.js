@@ -1,40 +1,26 @@
-import * as _ from './utilities';
-// import {create, attach} from '../plugins';
+// Default options and global configuration
 
-const plugins = {
-  create: [],
-  attach: [],
-};
+import _ from 'lodash';
 
-const config = {
-  plugins: {
-    set create(newPlugins) {
-      plugins.create = _.asArray(newPlugins);
-      return plugins.create;
-    },
-
-    set attach(newPlugins) {
-      plugins.attach = _.asArray(newPlugins);
-      return plugins.attach;
-    },
-
-    get create() { return plugins.create; },
-    get attach() { return plugins.attach; },
-  },
-
-  React: {
-    use(correctReact, {native = false, dom = false}) {
-      this.Library = correctReact;
-      this.isDom = dom;
-      this.isNative = native;
-    },
-
-    isDom: false,
-    isNative: false,
-  },
-
+const DEFAULTS = Object.freeze({
+  React: null,
   identifier: 'styled',
   depth: 'smart',
+  pseudo: false,
+  plugins: [],
+});
+
+let config = {};
+
+export function configure(newConfig) {
+  _.assign(config, newConfig);
+}
+
+configure.defaults = function() {
+  Object.keys(config).forEach((key) => delete config[key]);
+  configure(DEFAULTS);
 };
+
+configure.defaults();
 
 export default config;

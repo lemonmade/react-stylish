@@ -1,54 +1,73 @@
 import * as _ from './utilities';
+import config from './config';
 // import {applyCreatePlugins} from '../plugins/apply-plugins';
-
-function applyCreatePlugins() {}
-
-const INTERACTION_STATES = ['hover', 'active', 'focus'];
 
 let stylesheetIndex = 1;
 
-class StyleSheet {
+class Rule {
+  constructor(base) {
+    Object.defineProperty(this, 'base', {
+      value: base ? resolveComponentRules(base) : [],
+      enumerable: false,
+    });
+  }
+
+  variation(...args) {
+    if (args.length === 3) {
+      let [name, value, rules] = args;
+      this[name] = this[name] || {};
+      this[name][value] = resolveComponentRules(rules);
+    } else {
+      let [name, rules] = args;
+      this[name] = this[name] || {};
+      this[name].true = resolveComponentRules(rules);
+    }
+  }
+}
+
+export default class StyleSheet {
+  rules = {};
+  variationDetails = {};
+  id = stylesheetIndex++;
+
   constructor(baseRules = {}) {
-    this.rules = {base: {}};
-    this.id = stylesheetIndex++;
-    if (Object.keys(baseRules).length) { this.add(baseRules, {base: true}); }
+    if (Object.keys(baseRules).length) { this.base(baseRules); }
   }
 
   add(rules, {base = false} = {}) {
     Object.keys(rules).forEach((name) => {
       if (base) {
-        let componentRules = resolveComponentRules(rules[name]);
-        this.rules.base[name] = {name, rules: componentRules};
-        this[name] = this.for(name);
+        this.rules[name] = new Rule(rules[name]);
+
+        // this[name] = this.for(name);
+        this[name] = this[name] || rules[name];
+
         return;
       }
 
       let variationRules = rules[name];
       // Boolean properties are in the form {component: {rules}}
       // Non-boolean properties are in the form {val: {component: {rules}}}
-      let isBoolean = depth(variationRules) < 3;
-      let variation = this.rules[name] || {name, isBoolean, rules: {}};
+      let isBoolean = (depth(variationRules) < 3);
+      this.variationDetails[name] = {isBoolean};
 
       if (isBoolean) {
-        variation.rules.true = {};
-
         Object.keys(variationRules).forEach((component) => {
-          let componentRules = resolveComponentRules(variationRules[component]);
-          variation.rules.true[component] = componentRules;
+          let componentRule = this.rules[component] || new Rule();
+          componentRule.variation(name, variationRules[component]);
+          this.rules[component] = componentRule;
         });
       } else {
         Object.keys(variationRules).forEach((variationValue) => {
-          variation.rules[variationValue] = {};
           let variationValueRules = variationRules[variationValue];
 
           Object.keys(variationValueRules).forEach((component) => {
-            let componentRules = resolveComponentRules(variationValueRules[component]);
-            variation.rules[variationValue][component] = componentRules;
+            let componentRule = this.rules[component] || new Rule();
+            componentRule.variation(name, variationValue, variationValueRules[component]);
+            this.rules[component] = componentRule;
           });
         });
       }
-
-      this.rules[name] = variation;
     });
 
     return this;
@@ -67,83 +86,69 @@ class StyleSheet {
   }
 }
 
+function reserved(key, value) {
+  let options = {pseudo: config.pseudo};
+  return config.plugins.some((plugin) => plugin.reserve && plugin.reserve(key, value, options));
+}
+
 function depth(object) {
   if (_.isArray(object) || _.isFunction(object)) { return 1; }
   if (!_.isObject(object)) { return 0; }
 
   let firstKey = Object.keys(object)[0];
-  return 1 + ((firstKey === 'transform' || INTERACTION_STATES.indexOf(firstKey) >= 0) ? 0 : depth(object[firstKey]));
+  return 1 + ((firstKey === 'transform' || reserved(firstKey, object[firstKey])) ? 0 : depth(object[firstKey]));
+}
+
+function createRule(rule, options) {
+  options.React = config.React;
+
+  config.plugins
+    .filter((plugin) => Boolean(plugin.create))
+    .forEach((plugin) => {
+      rule = plugin.create(rule, options);
+    });
+
+  return rule;
 }
 
 function finalRuleResolution(rule) {
   if (_.isObject(rule)) {
-    return applyCreatePlugins({rule, dynamic: false});
+    return createRule(rule, {dynamic: false});
   } else if (_.isFunction(rule)) {
-    return (context) => applyCreatePlugins({rule: rule.call(context, context), dynamic: true});
+    return (context) => createRule(rule.call(context, context), {dynamic: true});
   } else {
     return rule;
   }
 }
 
 function resolveComponentRules(rules) {
-  let resolvedRules = {base: []};
+  let componentRules = {base: []};
 
   _.asArray(rules).forEach((rule) => {
-    if (_.isObject(rule)) {
-      Object.keys(rule).forEach((interactionState) => {
-        if (INTERACTION_STATES.indexOf(interactionState) < 0) { return; }
+    if (!_.isObject(rule)) {
+      componentRules.base.push(finalRuleResolution(rule));
+      return;
+    }
 
-        let interactionRules = rule[interactionState];
-        delete rule[interactionState];
+    config.plugins
+      .filter((plugin) => Boolean(plugin.add))
+      .forEach((plugin) => {
+        let result = plugin.add(rule);
 
-        resolvedRules[interactionState] = _.asArray(interactionRules).map(finalRuleResolution);
+        Object.keys(result).forEach((ruleKey) => {
+          let relevantRules = result[ruleKey];
+
+          if (ruleKey === 'base') {
+            rule = relevantRules;
+            return;
+          }
+
+          componentRules[ruleKey] = _.asArray(relevantRules).map(finalRuleResolution);
+        });
       });
 
-      if (Object.keys(rule).length) { resolvedRules.base.push(finalRuleResolution(rule)); }
-    } else {
-      resolvedRules.base.push(finalRuleResolution(rule));
-    }
+    componentRules.base.push(finalRuleResolution(rule));
   });
 
-  return resolvedRules;
+  return componentRules;
 }
-
-function selectComponentRules(component, rules, stylishState, context) {
-  let matchedRules = [];
-  if (!rules) { return matchedRules; }
-
-  function ruleMapper(rule) { return compiledRule(rule, context); }
-  matchedRules.push(...rules.base.map(ruleMapper));
-
-  if (!stylishState) { return matchedRules; }
-
-  Object.keys(rules).forEach((interactionState) => {
-    let componentInteractionRules = rules[interactionState];
-
-    if (interactionState === 'base') { return; }
-    if (!stylishState[interactionState][component]) { return; }
-
-    matchedRules.push(...componentInteractionRules.map(ruleMapper));
-  });
-
-  return matchedRules;
-}
-
-function checkInteractions(rules, component, interactions) {
-  interactions[component] = interactions[component] || {};
-
-  INTERACTION_STATES
-    .filter((state) => rules[state])
-    .forEach((state) => interactions[component][state] = true);
-}
-
-function compiledRule(rule, context) {
-  if (_.isFunction(rule)) {
-    if (!context.state && !context.props) { return null; }
-    return rule.call(context, context);
-  } else {
-    return rule;
-  }
-}
-
-export default StyleSheet;

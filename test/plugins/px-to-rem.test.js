@@ -5,9 +5,8 @@ describe('plugins', () => {
   describe('PxToRemPlugin', () => {
     let React;
 
-    function pxToRem(options) {
-      options.React = options.React || React;
-      return PxToRemPlugin.create(options);
+    function pxToRem(rule, options = {React}) {
+      return PxToRemPlugin.create(rule, options);
     }
 
     beforeEach(() => {
@@ -26,21 +25,21 @@ describe('plugins', () => {
     it('converts numbers to the associated rem amounts', () => {
       let rule = {padding: 32, width: 300};
 
-      pxToRem({rule});
+      pxToRem(rule);
       expect(rule.padding).to.equal('2rem');
       expect(rule.width).to.equal('18.75rem');
     });
 
     it('does not convert strings to rem amounts', () => {
       let rule = {padding: '32'};
-      pxToRem({rule});
+      pxToRem(rule);
       expect(rule.padding).to.equal('32');
     });
 
     it('does not change properties that should stay as pixel values', () => {
       let rule = {...RULE_WITH_PX_PROPERTIES};
 
-      pxToRem({rule});
+      pxToRem(rule);
       Object.keys(RULE_WITH_PX_PROPERTIES).forEach((property) => {
         expect(RULE_WITH_PX_PROPERTIES[property]).to.equal(rule[property]);
       });
@@ -57,16 +56,15 @@ describe('plugins', () => {
     describe('.excluding', () => {
       const CustomPxToRemPlugin = PxToRemPlugin.excluding('padding', 'margin');
 
-      function customPxToRem(options) {
-        options.React = options.React || React;
-        return CustomPxToRemPlugin.create(options);
+      function customPxToRem(rule, options = {React}) {
+        return CustomPxToRemPlugin.create(rule, options);
       }
 
       it('creates a plugin that excludes the specified properties', () => {
         let rule = {padding: 32, margin: 32};
         let ruleCopy = {...rule};
 
-        customPxToRem({rule});
+        customPxToRem(rule);
         Object.keys(ruleCopy).forEach((property) => {
           expect(ruleCopy[property]).to.equal(rule[property]);
         });
@@ -74,14 +72,14 @@ describe('plugins', () => {
 
       it('still converts non-omitted properties', () => {
         let rule = {width: 300};
-        customPxToRem({rule});
+        customPxToRem(rule);
         expect(rule).to.have.property('width', '18.75rem');
       });
 
       it('still omits pixel-required values', () => {
         let rule = {...RULE_WITH_PX_PROPERTIES};
 
-        customPxToRem({rule});
+        customPxToRem(rule);
         Object.keys(RULE_WITH_PX_PROPERTIES).forEach((property) => {
           expect(RULE_WITH_PX_PROPERTIES[property]).to.equal(rule[property]);
         });

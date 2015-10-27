@@ -1,16 +1,13 @@
-export default function connector({resolver}) {
+import resolve from './resolve';
+
+export function createConnector(resolver) {
   return function connect(styles, options = {}) {
     return function(Component) {
       let {render, componentWillMount} = Component.prototype;
 
       Component.prototype.componentWillMount = function() {
         if (componentWillMount) { componentWillMount.apply(this, arguments); }
-        this.setState({_StylishState: {hover: {}, active: {}, focus: {}}});
-      };
-
-      Component.prototype.stylesFor = Component.prototype.stylesFor || function(component) {
-        styles.attach(this);
-        return styles.for(component);
+        this.setState({_StylishState: {}});
       };
 
       Component.prototype.render = function() {
@@ -22,3 +19,5 @@ export default function connector({resolver}) {
     };
   };
 }
+
+export default createConnector(resolve);

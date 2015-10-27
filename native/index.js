@@ -1,22 +1,24 @@
-import React from 'react-native';
+import React from './react';
 
-import connect from './connect';
-import Plugins from '../plugins';
-
+import connect from '../common/connect';
 import create from '../common/create';
-import config from '../common/config';
+import {configure} from '../common/config';
 
-config.React.use(React, {native: true});
+import {Plugins} from '../plugins';
+
+configure({React});
 
 export {
   connect,
   create,
+  configure,
   Plugins,
 };
 
 const Stylish = {
   connect,
   create,
+  configure,
   Plugins,
 };
 

@@ -10,7 +10,7 @@ const DEFAULT_EXCLUDES = [
 ];
 
 const PxToRemPlugin = {
-  create({rule, React, excluding = []}) {
+  create(rule, {React, excluding = []}) {
     if (!React.isDom) { return rule; }
 
     Object.keys(rule).forEach((ruleName) => {
@@ -30,9 +30,9 @@ const PxToRemPlugin = {
 
   excluding(...excluding) {
     return {
-      create(options) {
+      create(rule, options) {
         options.excluding = excluding;
-        return PxToRemPlugin.create(options);
+        return PxToRemPlugin.create(rule, options);
       },
     };
   },

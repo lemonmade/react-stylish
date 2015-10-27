@@ -1,4 +1,5 @@
 const INTERACTION_STATES = ['hover', 'focus', 'active'];
+const PSEUDO_INTERACTION_STATES = INTERACTION_STATES.map((state) => `:${state}`);
 const KEYS_FOR_ACTIVE = [' ', 'enter'];
 let cache = {};
 
@@ -12,24 +13,40 @@ function nextMouseupListener(callback) {
 }
 
 const InteractionStylesPlugin = {
-  add({rule, component, stylesheet}) {
-    let interactions = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
-    INTERACTION_STATES.forEach((state) => {
-      if (interactions[state][component] == null) {
-        interactions[state][component] = Boolean(rule[state]);
-      }
-    });
-    cache[stylesheet.id] = interactions;
-
-    let {hover, focus, active, ...base} = rule;
-
-    return INTERACTION_STATES.reduce((result, state) => {
-      if (rule[state]) { result[state] = rule[state]; }
-      return result;
-    }, {base});
+  reserve(key, value, {pseudo = false} = {}) {
+    const STATES = pseudo ? PSEUDO_INTERACTION_STATES : INTERACTION_STATES;
+    return STATES.indexOf(key) >= 0;
   },
 
-  resolve({rules, props, component, stylesheet, state, setState}) {
+  add(rule, {component, stylesheet, pseudo = false}) {
+    let interactions = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
+    let STATES = pseudo ? PSEUDO_INTERACTION_STATES : INTERACTION_STATES;
+
+    STATES.forEach((state, index) => {
+      let normalizeState = INTERACTION_STATES[index];
+      if (interactions[normalizeState][component] == null) {
+        interactions[normalizeState][component] = Boolean(rule[state]);
+      }
+    });
+
+    cache[stylesheet.id] = interactions;
+
+    let result = {};
+
+    STATES.forEach((state, index) => {
+      let normalizedState = INTERACTION_STATES[index];
+
+      if (rule[state]) {
+        result[normalizedState] = rule[state];
+        delete rule[state];
+      }
+    });
+
+    result.base = rule;
+    return result;
+  },
+
+  resolve(rules, {props, component, stylesheet, state, setState}) {
     let interactionState = state.interactions || {hover: {}, focus: {}, active: {}};
     let statePresence = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
 

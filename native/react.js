@@ -1,5 +1,4 @@
 import React from 'react-native';
-import createResolver from '../common/resolver';
 
 const BUILT_IN_COMPONENTS = [
   'View',
@@ -32,11 +31,11 @@ const BUILT_IN_COMPONENTS = [
   'WebView',
 ];
 
-export default createResolver({
-  Children: React.Children,
-  isValidElement: React.isValidElement,
-  cloneElement: React.cloneElement,
-  isCustomComponent(element) {
-    return BUILT_IN_COMPONENTS.indexOf(element.type.displayName || element.type.name) < 0;
-  },
-});
+React.isNative = true;
+React.isDom = false;
+
+React.isCustomComponent = function(element) {
+  return BUILT_IN_COMPONENTS.indexOf(element.type.displayName || element.type.name) < 0;
+};
+
+export default React;

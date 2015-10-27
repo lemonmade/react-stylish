@@ -1,22 +1,33 @@
-import React from 'react';
+import React from './react';
 
-import connect from './connect';
-import Plugins from '../plugins';
-
+import connect from '../common/connect';
 import create from '../common/create';
-import config from '../common/config';
+import {configure} from '../common/config';
 
-config.React.use(React, {dom: true});
+import {Plugins} from '../plugins';
+
+configure({
+  React,
+  plugins: [
+    Plugins.InteractionStyles,
+    Plugins.PositionalStyles,
+    Plugins.PxToRem,
+    Plugins.VendorPrefix,
+    Plugins.MergeRules,
+  ],
+});
 
 export {
   connect,
   create,
+  configure,
   Plugins,
 };
 
 const Stylish = {
   connect,
   create,
+  configure,
   Plugins,
 };
 

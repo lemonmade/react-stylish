@@ -6,9 +6,9 @@ describe('plugins', () => {
     const rule = Object.freeze({color: 'red'});
     let React;
 
-    function reactStyleSheet(options) {
+    function reactStyleSheet(theRule, options = {}) {
       options.React = options.React || React;
-      return ReactStyleSheetPlugin.create(options);
+      return ReactStyleSheetPlugin.create(theRule, options);
     }
 
     beforeEach(() => {
@@ -26,18 +26,18 @@ describe('plugins', () => {
     });
 
     it('returns the result of React.StyleSheet.create', () => {
-      let result = reactStyleSheet({rule, React});
+      let result = reactStyleSheet(rule, {React});
       expect(result).to.equal(1);
     });
 
     it('does not apply if the rule is dynamic', () => {
-      let result = reactStyleSheet({rule, React, dynamic: true});
+      let result = reactStyleSheet(rule, {React, dynamic: true});
       expect(result).to.equal(rule);
     });
 
     it('does not apply if it is not React native', () => {
       React.isNative = false;
-      let result = reactStyleSheet({rule, React});
+      let result = reactStyleSheet(rule, {React});
       expect(result).to.deep.equal(rule);
     });
   });

@@ -5,9 +5,8 @@ describe('plugins', () => {
   describe('VendorPrefixesPlugin', () => {
     let React;
 
-    function vendorPrefix(options) {
-      options.React = options.React || React;
-      return VendorPrefixesPlugin.create(options);
+    function vendorPrefix(rule, options = {React}) {
+      return VendorPrefixesPlugin.create(rule, options);
     }
 
     beforeEach(() => {
@@ -15,7 +14,7 @@ describe('plugins', () => {
     });
 
     it('does nothing', () => {
-      expect(vendorPrefix({rule: {}})).to.deep.equal({});
+      expect(vendorPrefix({})).to.deep.equal({});
     });
   });
 });

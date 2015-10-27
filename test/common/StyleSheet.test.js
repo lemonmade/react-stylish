@@ -1,6 +1,6 @@
 import '../helper';
 import StyleSheet from '../../common/StyleSheet';
-import config from '../../common/config';
+import config, {configure} from '../../common/config';
 
 describe('StyleSheet', () => {
   const component = 'button';
@@ -17,17 +17,9 @@ describe('StyleSheet', () => {
     functionRule.reset();
   });
 
-  describe('adding rules', () => {
-    let reactComponent;
-    let plugin;
+  describe('#add', () => {
     const ruleOne = objectRule;
     const ruleTwo = Object.freeze({color: 'blue'});
-    const INTERACTION_STATES = ['hover', 'focus', 'active'];
-
-    function addCreatePlugin() {
-      plugin = sinon.stub().returns(ruleTwo);
-      config.plugins.create = plugin;
-    }
 
     function addBooleanVariationRule(rule) {
       stylesheet.add({[booleanVariation]: {[component]: rule}});
@@ -41,430 +33,210 @@ describe('StyleSheet', () => {
       });
     }
 
-    beforeEach(() => {
-      reactComponent = {props: {}, state: {}};
-      stylesheet.attach(reactComponent);
-      config.plugins.create = [];
-    });
-
-    describe('base rules', () => {
-      it('returns an empty array for components without rules', () => {
-        expect(stylesheet.for(component)).to.deep.equal([]);
-      });
-
-      it('does not throw when the context has no state', () => {
-        delete reactComponent.state;
-        expect(() => stylesheet.for(component)).to.not.throw;
-      });
-
-      it('does not throw when the context has no props', () => {
-        delete reactComponent.props;
-        expect(() => stylesheet.for(component)).to.not.throw;
-      });
-
-      it('returns an array of base object rules', () => {
+    describe('when base', () => {
+      it('stores base rules', () => {
         stylesheet.add({[component]: objectRule}, {base: true});
-        expect(stylesheet.for(component)).to.deep.equal([objectRule]);
+        let {rules} = stylesheet;
+        expect(rules[component].base.base).to.deep.equal([objectRule]);
       });
 
-      it('adds base rules passed in the constructor', () => {
-        stylesheet = new StyleSheet({[component]: objectRule});
-        expect(stylesheet.for(component)).to.deep.equal([objectRule]);
+      it('stores a number rule', () => {
+        stylesheet.add({[component]: 42}, {base: true});
+        let {rules} = stylesheet;
+        expect(rules[component].base.base).to.deep.equal([42]);
       });
 
-      it('adds base styles as keys on the returned object', () => {
-        stylesheet = new StyleSheet({[component]: objectRule});
-        expect(stylesheet[component]).to.deep.equal([objectRule]);
-      });
-
-      it('only adds static base styles as keys on the returned object', () => {
-        let augmentedBaseRules = {
-          [component]: [
-            objectRule,
-            () => { return {transform: [{scale: 2}]}; },
-          ],
-
-          text() { return {color: 'blue'}; },
-        };
-
-        stylesheet = new StyleSheet(augmentedBaseRules);
-        expect(stylesheet[component]).to.deep.equal([objectRule]);
-        expect(stylesheet.text).to.be.empty;
-      });
-
-      it('returns an array of the result of base function rules', () => {
+      it('stores a wrapped function rule', () => {
         stylesheet.add({[component]: functionRule}, {base: true});
-        let result = stylesheet.for(component);
-        let expected = [functionRuleResult];
 
-        expect(result).to.deep.equal(expected);
-        expect(functionRule).to.have.been.calledOn(reactComponent);
-        expect(functionRule).to.have.been.calledWith(reactComponent);
+        let {rules} = stylesheet;
+        let rule = rules[component].base.base[0];
+        expect(rule).to.be.a('function');
+
+        let context = {};
+        let result = rule(context);
+        expect(functionRule).to.have.been.calledWith(context);
+        expect(result).to.equal(functionRuleResult);
       });
 
-      it('returns an array of the result of base function and object rules', () => {
-        stylesheet.add({[component]: [objectRule, functionRule]}, {base: true});
-        let result = stylesheet.for(component);
-        let expected = [objectRule, functionRuleResult];
-
-        expect(result).to.deep.equal(expected);
-        expect(functionRule).to.have.been.calledOn(reactComponent);
-        expect(functionRule).to.have.been.calledWith(reactComponent);
-      });
-
-      it('allows number-based rules (for StyleSheet.create())', () => {
-        stylesheet.add({[component]: 99}, {base: true});
-        expect(stylesheet.for(component)).to.deep.equal([99]);
-      });
-
-      it('does not evaluate function rules when the context is not a React element', () => {
-        let notReactComponent = {};
-        stylesheet.attach(notReactComponent);
+      it('stores arrays of rules', () => {
         stylesheet.add({[component]: [objectRule, functionRule]}, {base: true});
 
-        let result = stylesheet.for(component);
-        let expected = [objectRule];
+        let {rules} = stylesheet;
+        let rule = rules[component].base.base;
 
-        expect(result).to.deep.equal(expected);
-        expect(functionRule).to.not.have.been.called;
-      });
-
-      it('applies the create plugins to static rules', () => {
-        addCreatePlugin();
-        stylesheet.add({[component]: objectRule}, {base: true});
-        stylesheet.attach(reactComponent);
-        expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
-
-        let pluginArg = plugin.lastCall.args[0];
-        expect(pluginArg).to.have.property('rule', objectRule);
-        expect(pluginArg).to.have.property('dynamic', false);
-      });
-
-      it('applies the create plugins to dynamic rules', () => {
-        addCreatePlugin();
-        stylesheet.add({[component]: functionRule}, {base: true});
-        stylesheet.attach(reactComponent);
-        expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
-
-        let pluginArg = plugin.lastCall.args[0];
-        expect(pluginArg).to.have.property('rule', functionRuleResult);
-        expect(pluginArg).to.have.property('dynamic', true);
-      });
-
-      it('does not include interaction state rules in the base rule set', () => {
-        ['hover', 'focus', 'active'].forEach((interactionState) => {
-          stylesheet = new StyleSheet();
-          stylesheet.add({[component]: {...ruleOne, [interactionState]: ruleTwo}}, {base: true});
-          expect(stylesheet.for(component)).to.deep.equal([ruleOne]);
-        });
+        expect(rule[0]).to.equal(objectRule);
+        expect(rule[1]()).to.equal(functionRuleResult);
       });
     });
 
-    describe('variations', () => {
-      it('returns variation styles for components without base styles', () => {
+    describe('when variation', () => {
+      it('stores boolean variations', () => {
         addBooleanVariationRule(objectRule);
-        reactComponent.state[booleanVariation] = true;
 
-        let result = stylesheet.for(component);
-        let expected = [objectRule];
-        expect(result).to.deep.equal(expected);
+        let {rules, variationDetails} = stylesheet;
+        expect(rules[component][booleanVariation].true.base).to.deep.equal([objectRule]);
+        expect(variationDetails[booleanVariation]).to.have.property('isBoolean', true);
       });
 
-      it('puts multiple matching variation rules in the order they were defined', () => {
-        stylesheet.add({
-          [booleanVariation]: {[component]: ruleOne},
-          [enumerableVariation]: {
-            [enumerableVariationValue]: {[component]: ruleTwo},
-          },
-        });
-
-        reactComponent.props[enumerableVariation] = enumerableVariationValue;
-        reactComponent.props[booleanVariation] = true;
-
-        let result = stylesheet.for(component);
-        let expected = [ruleOne, ruleTwo];
-        expect(result).to.deep.equal(expected);
-      });
-
-      it('applies the create plugins to static rules', () => {
-        addCreatePlugin();
-        stylesheet.add({[booleanVariation]: {[component]: objectRule}});
-        reactComponent.props[booleanVariation] = true;
-        stylesheet.attach(reactComponent);
-        expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
-      });
-
-      it('applies the create plugins to dynamic rules', () => {
-        addCreatePlugin();
-        stylesheet.add({[booleanVariation]: {[component]: functionRule}});
-        reactComponent.props[booleanVariation] = true;
-        stylesheet.attach(reactComponent);
-        expect(stylesheet.for(component)).to.deep.equal([ruleTwo]);
-      });
-
-      it('retrieves variation values from a passed variation mapping', () => {
-        addBooleanVariationRule(objectRule);
-        expect(stylesheet.for(component, {[booleanVariation]: true})).to.deep.equal([objectRule]);
-      });
-
-      it('uses the variation mapping value over the actual prop when both exist', () => {
+      it('stores enumerable variations', () => {
         addEnumerableVariationRule(objectRule);
-        let mapping = {[enumerableVariation]: enumerableVariationValue};
-        reactComponent.props[enumerableVariation] = 'foo';
-        expect(stylesheet.for(component, mapping)).to.deep.equal([objectRule]);
+
+        let {rules, variationDetails} = stylesheet;
+        expect(rules[component][enumerableVariation][enumerableVariationValue].base).to.deep.equal([objectRule]);
+        expect(variationDetails[enumerableVariation]).to.have.property('isBoolean', false);
       });
 
-      it('does not get confused when the variation mapping returns a falsey value', () => {
-        addBooleanVariationRule(objectRule);
-        let mapping = {[booleanVariation]: false};
-        reactComponent.props[booleanVariation] = true;
-        expect(stylesheet.for(component, mapping)).to.be.empty;
+      it('stores variations for multiple components', () => {
+        addBooleanVariationRule(ruleOne);
+        stylesheet.add({[booleanVariation]: {text: ruleTwo}});
+
+        let {rules} = stylesheet;
+        expect(rules[component][booleanVariation].true.base).to.deep.equal([ruleOne]);
+        expect(rules.text[booleanVariation].true.base).to.deep.equal([ruleTwo]);
       });
 
-      it('does not include interaction state rules in the base rule set', () => {
-        ['hover', 'focus', 'active'].forEach((interactionState) => {
-          addBooleanVariationRule({...ruleOne, [interactionState]: ruleTwo});
-          reactComponent.props[booleanVariation] = true;
-          expect(stylesheet.for(component)).to.deep.equal([ruleOne]);
-        });
+      it('stores multiple enumerable variation values', () => {
+        addEnumerableVariationRule(ruleOne);
+        stylesheet.add({[enumerableVariation]: {secondary: {[component]: ruleTwo}}});
+
+        let {rules} = stylesheet;
+        expect(rules[component][enumerableVariation][enumerableVariationValue].base).to.deep.equal([ruleOne]);
+        expect(rules[component][enumerableVariation].secondary.base).to.deep.equal([ruleTwo]);
       });
 
-      describe('boolean variations', () => {
-        it('does not retrieve styles for a falsey boolean variation', () => {
-          addBooleanVariationRule([objectRule, functionRule]);
-          reactComponent.props[booleanVariation] = false;
-          expect(stylesheet.for(component)).to.deep.equal([]);
-        });
-
-        it('retrieves object style rules for a true boolean variation', () => {
-          addBooleanVariationRule(objectRule);
-          reactComponent.props[booleanVariation] = true;
-          expect(stylesheet.for(component)).to.deep.equal([objectRule]);
-        });
-
-        it('retrieves object style rules for a truthy variation', () => {
-          addBooleanVariationRule(objectRule);
-
-          let booleanVariationTruthyValue = {foo: 'bar'};
-          reactComponent.props[booleanVariation] = booleanVariationTruthyValue;
-
-          let result = stylesheet.for(component);
-          let expected = [objectRule];
-          expect(result).to.deep.equal(expected);
-        });
-
-        it('retrieves the result of function style rules for a true boolean variation', () => {
-          addBooleanVariationRule(functionRule);
-
-          reactComponent.props[booleanVariation] = true;
-
-          let result = stylesheet.for(component);
-          let expected = [functionRuleResult];
-
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.have.been.calledOn(reactComponent);
-          expect(functionRule).to.have.been.calledWith(reactComponent);
-        });
-
-        it('retrieves the result of function style rules for a truthy boolean variation', () => {
-          addBooleanVariationRule(functionRule);
-
-          let booleanVariationTruthyValue = {foo: 'bar'};
-          reactComponent.props[booleanVariation] = booleanVariationTruthyValue;
-
-          let result = stylesheet.for(component);
-          let expected = [functionRuleResult];
-
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.have.been.calledOn(reactComponent);
-          expect(functionRule).to.have.been.calledWith(reactComponent);
-        });
-
-        it('retrieves an array style rules for a truthy boolean variation', () => {
-          addBooleanVariationRule([objectRule, functionRule]);
-          reactComponent.props[booleanVariation] = true;
-
-          let result = stylesheet.for(component);
-          let expected = [objectRule, functionRuleResult];
-
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.have.been.calledOn(reactComponent);
-          expect(functionRule).to.have.been.calledWith(reactComponent);
-        });
-
-        it('does not get confused by transform declarations of a boolean variation', () => {
-          let rule = {transform: [{scale: 2}]};
-          addBooleanVariationRule(rule);
-          reactComponent.props[booleanVariation] = true;
-          expect(stylesheet.for(component)).to.deep.equal([rule]);
-        });
-
-        INTERACTION_STATES.forEach((state) => {
-          it(`does not get confused by ${state} declarations of a boolean variation`, () => {
-            let rule = {[state]: objectRule};
-            addBooleanVariationRule(rule);
-            reactComponent.props[booleanVariation] = true;
-            expect(stylesheet.for(component)).to.be.empty;
-          });
-        });
+      it('does not get confused by transform rules in boolean variations', () => {
+        addBooleanVariationRule({transform: {scale: 2}});
+        let {variationDetails} = stylesheet;
+        expect(variationDetails[booleanVariation]).to.have.property('isBoolean', true);
       });
 
-      describe('enumerable variations', () => {
-        it('does not retrieve styles for a non-matching enumerable prop', () => {
-          addEnumerableVariationRule(objectRule, functionRule);
-          reactComponent.props[enumerableVariation] = 'foo';
+      it('does not get confused by arrays of boolean rules', () => {
+        addBooleanVariationRule([objectRule]);
+        let {variationDetails} = stylesheet;
+        expect(variationDetails[booleanVariation]).to.have.property('isBoolean', true);
+      });
 
-          let result = stylesheet.for(component);
-          let expected = [];
+      it('does not get confused by a function boolean rule', () => {
+        addBooleanVariationRule(() => objectRule);
+        let {variationDetails} = stylesheet;
+        expect(variationDetails[booleanVariation]).to.have.property('isBoolean', true);
+      });
 
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.not.have.been.called;
-        });
+      it('does not get confused by keys reserved by plugins in boolean variations', () => {
+        let plugin = {reserve: sinon.spy((key) => key === 'hover')};
+        configure({plugins: [plugin]});
+        addBooleanVariationRule({hover: objectRule});
 
-        it('retrieves object style rules for a matching enumerable prop', () => {
-          addEnumerableVariationRule(objectRule);
-          reactComponent.props[enumerableVariation] = enumerableVariationValue;
-
-          let result = stylesheet.for(component);
-          let expected = [objectRule];
-          expect(result).to.deep.equal(expected);
-        });
-
-        it('retrieves the result of function style rules for a matching enumerable prop', () => {
-          addEnumerableVariationRule(functionRule);
-          reactComponent.props[enumerableVariation] = enumerableVariationValue;
-
-          let result = stylesheet.for(component);
-          let expected = [functionRuleResult];
-
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.have.been.calledOn(reactComponent);
-          expect(functionRule).to.have.been.calledWith(reactComponent);
-        });
-
-        it('retrieves an array style rules for a matching enumerable prop', () => {
-          addEnumerableVariationRule([objectRule, functionRule]);
-          reactComponent.props[enumerableVariation] = enumerableVariationValue;
-
-          let result = stylesheet.for(component);
-          let expected = [objectRule, functionRuleResult];
-
-          expect(result).to.deep.equal(expected);
-          expect(functionRule).to.have.been.calledOn(reactComponent);
-          expect(functionRule).to.have.been.calledWith(reactComponent);
-        });
+        let {variationDetails} = stylesheet;
+        expect(variationDetails[booleanVariation]).to.have.property('isBoolean', true);
       });
     });
 
-    describe('interactions', () => {
-      it('has empty interaction styles for a component with base rules', () => {
-        stylesheet.add({[component]: ruleOne}, {base: true});
-        expect(stylesheet.interactions[component]).to.deep.equal({});
+    describe('with plugins', () => {
+      const key = 'hover';
+      let pluginOne = null;
+      let pluginTwo = null;
+
+      describe('reserve', () => {
+        beforeEach(() => {
+          pluginOne = {reserve: sinon.spy(() => false)};
+          pluginTwo = {reserve: sinon.spy((styleKey) => styleKey === key)};
+        });
+
+        it('calls plugins to check if an object key is reserved', () => {
+          configure({plugins: [pluginOne, pluginTwo]});
+          addBooleanVariationRule({[key]: objectRule});
+
+          let pluginOneArgs = pluginOne.reserve.lastCall.args;
+          let pluginTwoArgs = pluginTwo.reserve.lastCall.args;
+          let expectedOptions = {pseudo: config.pseudo};
+
+          expect(pluginOneArgs[0]).to.equal(key);
+          expect(pluginOneArgs[1]).to.equal(objectRule);
+          expect(pluginOneArgs[2]).to.deep.equal(expectedOptions);
+          expect(pluginTwoArgs[0]).to.equal(key);
+          expect(pluginTwoArgs[1]).to.equal(objectRule);
+          expect(pluginTwoArgs[2]).to.deep.equal(expectedOptions);
+        });
+
+        it('does not call plugins if a previous plugin has reserved a key', () => {
+          configure({plugins: [pluginTwo, pluginOne]});
+          addBooleanVariationRule({[key]: objectRule});
+          expect(pluginOne.reserve).not.to.have.been.calledWith(key);
+          expect(pluginTwo.reserve).to.have.been.calledWith(key);
+        });
       });
 
-      it('has empty interaction styles for a component with variation rules', () => {
-        addBooleanVariationRule(objectRule);
-        expect(stylesheet.interactions[component]).to.deep.equal({});
-      });
-
-      INTERACTION_STATES.forEach((state) => {
-        const OTHER_STATES = INTERACTION_STATES.filter((otherState) => otherState !== state);
-
-        it(`it sets the ${state} state when passed as part of the base rules`, () => {
-          stylesheet.add({[component]: {[state]: ruleTwo}}, {base: true});
-          expect(stylesheet.interactions[component]).to.be.defined;
-          expect(stylesheet.interactions[component][state]).to.be.true;
-
-          OTHER_STATES.forEach((otherState) => {
-            expect(stylesheet.interactions[component][otherState]).to.not.be.true;
-          });
-        });
-
-        it(`it sets the ${state} state when passed as part of the boolean variation rules`, () => {
-          addBooleanVariationRule({[state]: ruleTwo});
-          expect(stylesheet.interactions[component]).to.be.defined;
-          expect(stylesheet.interactions[component][state]).to.be.true;
-
-          OTHER_STATES.forEach((otherState) => {
-            expect(stylesheet.interactions[component][otherState]).to.not.be.true;
-          });
-        });
-
-        it(`it sets the ${state} state when passed as part of the enumerable variation rules`, () => {
-          addEnumerableVariationRule({[state]: ruleTwo});
-          expect(stylesheet.interactions[component]).to.be.defined;
-          expect(stylesheet.interactions[component][state]).to.be.true;
-
-          OTHER_STATES.forEach((otherState) => {
-            expect(stylesheet.interactions[component][otherState]).to.not.be.true;
-          });
-        });
-
-        it(`includes ${state} styles when the ${state} state key for the component is true`, () => {
-          stylesheet.base({[component]: {[state]: objectRule}});
-          reactComponent.state._StylishState = {[state]: {[component]: true}};
-          expect(stylesheet.for(component)).to.deep.equal([objectRule]);
-        });
-
-        it(`includes ${state} styles in the correct order`, () => {
-          let otherState = OTHER_STATES[0];
-          stylesheet.base({[component]: {[state]: ruleOne, [otherState]: ruleTwo}});
-          reactComponent.state._StylishState = {
-            [state]: {[component]: true},
-            [otherState]: {[component]: true},
+      describe('add', () => {
+        beforeEach(() => {
+          pluginOne = {
+            add: sinon.spy((rule) => {
+              let {hover, ...base} = rule;
+              return {hover, base};
+            }),
           };
 
-          expect(stylesheet.for(component)).to.deep.equal([ruleOne, ruleTwo]);
-        });
-
-        it(`does not include ${state} styles when the ${state} state key for the component is false`, () => {
-          stylesheet.base({[component]: {[state]: objectRule}});
-          reactComponent.state._StylishState = {[state]: {[component]: false}};
-          expect(stylesheet.for(component)).to.be.empty;
-        });
-
-        it(`includes variation ${state} styles when the ${state} state key for the component is true`, () => {
-          addBooleanVariationRule({[state]: objectRule});
-          reactComponent.state._StylishState = {[state]: {[component]: true}};
-          reactComponent.props[booleanVariation] = true;
-          expect(stylesheet.for(component)).to.deep.equal([objectRule]);
-        });
-
-        it(`does not include variation ${state} styles when the ${state} state key for the component is false`, () => {
-          addBooleanVariationRule({[state]: objectRule});
-          reactComponent.state._StylishState = {[state]: {[component]: false}};
-          reactComponent.props[booleanVariation] = true;
-          expect(stylesheet.for(component)).to.be.empty;
-        });
-
-        it(`does not include variation ${state} styles when the variation does not apply`, () => {
-          addBooleanVariationRule({[state]: objectRule});
-          reactComponent.state._StylishState = {[state]: {[component]: true}};
-          addBooleanVariationRule({[state]: objectRule});
-          expect(stylesheet.for(component)).to.be.empty;
-        });
-
-        it(`includes variation ${state} styles in the correct order`, () => {
-          let otherState = OTHER_STATES[0];
-          addBooleanVariationRule({[state]: ruleOne, [otherState]: ruleTwo});
-          reactComponent.props[booleanVariation] = true;
-          reactComponent.state._StylishState = {
-            [state]: {[component]: true},
-            [otherState]: {[component]: true},
+          pluginTwo = {
+            add: sinon.spy((rule) => {
+              let {focus, ...base} = rule;
+              return {focus, base};
+            }),
           };
 
-          expect(stylesheet.for(component)).to.deep.equal([ruleOne, ruleTwo]);
+          configure({plugins: [pluginOne, pluginTwo]});
+        });
+
+        it('extracts parts of rules based on add plugins', () => {
+          stylesheet.add({[component]: {hover: ruleOne, focus: ruleTwo, ...ruleOne}}, {base: true});
+          let {rules} = stylesheet;
+
+          expect(rules[component].base).to.deep.equal({
+            base: [ruleOne],
+            hover: [ruleOne],
+            focus: [ruleTwo],
+          });
         });
       });
 
-      it('does not overwrite existing interaction records', () => {
-        stylesheet.add({[component]: {hover: ruleOne}}, {base: true});
-        expect(stylesheet.interactions[component]).to.deep.equal({hover: true});
+      describe('create', () => {
+        beforeEach(() => {
+          pluginOne = {create: sinon.stub().returns(42)};
+          pluginTwo = {create: sinon.stub().returns(43)};
+          configure({plugins: [pluginOne, pluginTwo]});
+        });
 
-        addBooleanVariationRule({active: ruleTwo});
-        expect(stylesheet.interactions[component]).to.deep.equal({
-          hover: true,
-          active: true,
+        it('calls create plugins on object rules and stores the result', () => {
+          stylesheet.add({[component]: objectRule}, {base: true});
+
+          let {rules} = stylesheet;
+          let expectedOptions = {dynamic: false, React: config.React};
+
+          let pluginOneArgs = pluginOne.create.lastCall.args;
+          let pluginTwoArgs = pluginTwo.create.lastCall.args;
+
+          expect(pluginOneArgs[0]).to.equal(objectRule);
+          expect(pluginOneArgs[1]).to.deep.equal(expectedOptions);
+          expect(pluginTwoArgs[0]).to.equal(42);
+          expect(pluginTwoArgs[1]).to.deep.equal(expectedOptions);
+          expect(rules[component].base.base).to.deep.equal([43]);
+        });
+
+        it('calls create plugins on the result of function-wrapped rules', () => {
+          stylesheet.add({[component]: functionRule}, {base: true});
+
+          let {rules} = stylesheet;
+          let result = rules[component].base.base[0]();
+          let expectedOptions = {dynamic: true, React: config.React};
+
+          let pluginOneArgs = pluginOne.create.lastCall.args;
+          let pluginTwoArgs = pluginTwo.create.lastCall.args;
+
+          expect(pluginOneArgs[0]).to.equal(functionRuleResult);
+          expect(pluginOneArgs[1]).to.deep.equal(expectedOptions);
+          expect(pluginTwoArgs[0]).to.equal(42);
+          expect(pluginTwoArgs[1]).to.deep.equal(expectedOptions);
+          expect(result).to.equal(43);
         });
       });
     });
@@ -472,42 +244,40 @@ describe('StyleSheet', () => {
 
   describe('#base', () => {
     it('calls #add with the base option', () => {
-      sinon.stub(stylesheet, 'add').returns('foo');
+      sinon.stub(stylesheet, 'add').returns(stylesheet);
       let baseRule = {[component]: objectRule};
       let result = stylesheet.base(baseRule);
 
       expect(stylesheet.add).to.have.been.calledWith(baseRule, {base: true});
-      expect(result).to.equal('foo');
+      expect(result).to.equal(stylesheet);
     });
   });
 
   describe('#variations', () => {
     it('calls #add', () => {
-      sinon.stub(stylesheet, 'add').returns('foo');
+      sinon.stub(stylesheet, 'add').returns(stylesheet);
       let variationRule = {[booleanVariation]: {[component]: objectRule}};
       let result = stylesheet.variations(variationRule);
 
       expect(stylesheet.add).to.have.been.calledWith(variationRule);
-      expect(result).to.equal('foo');
+      expect(result).to.equal(stylesheet);
     });
   });
 
   describe('#variation', () => {
     it('calls #add with a formatted version of the variation', () => {
-      sinon.stub(stylesheet, 'add').returns('foo');
+      sinon.stub(stylesheet, 'add').returns(stylesheet);
       let variationRule = {[component]: objectRule};
       let result = stylesheet.variation(booleanVariation, variationRule);
 
       expect(stylesheet.add).to.have.been.calledWith({[booleanVariation]: variationRule});
-      expect(result).to.equal('foo');
+      expect(result).to.equal(stylesheet);
     });
   });
 
-  describe('#attach', () => {
-    it('sets the new object as the context for the rules', () => {
-      let context = {props: {}, state: {}};
-      stylesheet.attach(context);
-      expect(stylesheet.context).to.equal(context);
+  describe('#id', () => {
+    it('gives a unique ID to each stylesheet', () => {
+      expect(new StyleSheet().id).to.not.equal(new StyleSheet().id);
     });
   });
 });

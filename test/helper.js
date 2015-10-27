@@ -1,14 +1,5 @@
-import config from '../common/config';
-
-let createPlugins;
-let attachPlugins;
+import {configure} from '../common/config';
 
 beforeEach(() => {
-  createPlugins = config.plugins.create;
-  attachPlugins = config.plugins.attach;
-});
-
-afterEach(() => {
-  config.plugins.create = createPlugins;
-  config.plugins.attach = attachPlugins;
+  configure.defaults();
 });

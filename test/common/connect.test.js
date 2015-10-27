@@ -1,19 +1,19 @@
 import '../helper';
 import React from 'react';
-import connector from '../../common/connector';
+import {createConnector} from '../../common/connect';
+import StyleSheet from '../../common/StyleSheet';
 
-describe('connector', () => {
+describe('connect', () => {
   let Example;
   let ConnectedExample;
   let rendered;
-  let styles;
   let resolver;
   let connect;
+  let styles = new StyleSheet();
 
   beforeEach(() => {
-    styles = {for: sinon.spy(), attach: sinon.spy()};
     resolver = sinon.stub();
-    connect = connector({resolver});
+    connect = createConnector(resolver);
     rendered = <div />;
 
     class MyExample {
@@ -25,12 +25,12 @@ describe('connector', () => {
   });
 
   describe('returned class', () => {
-    it('does not override any instance methods other than render', () => {
+    it('does not override any extra instance methods', () => {
       let testMethods = [
-        'componentWillMount',
         'componentDidMount',
         'componentWillUnmount',
         'componentDidUnmount',
+        'componentWillReceiveProps',
         'setState',
       ];
 
@@ -45,7 +45,7 @@ describe('connector', () => {
 
       testMethods.forEach((method) => {
         expect(connected[method]).to.be.defined;
-        expect(connected[method]()).to.deep.equal(example[method]());
+        expect(connected[method]()).to.equal(example[method]());
       });
     });
 
@@ -101,9 +101,8 @@ describe('connector', () => {
       subject.componentWillMount();
       expect(setState).to.have.been.calledOn(subject);
 
-      let arg = setState.lastCall.args[0];
-      expect(Object.keys(arg)[0]).to.match(/_Stylish/);
-      expect(arg[Object.keys(arg)[0]]).to.deep.equal({hover: {}, active: {}, focus: {}});
+      let newState = setState.lastCall.args[0];
+      expect(newState._StylishState).to.deep.equal({});
     });
   });
 
@@ -118,7 +117,7 @@ describe('connector', () => {
       expect(originalRender).to.have.been.calledOn(subject);
     });
 
-    it('calls the passed resolver on render', () => {
+    it('calls resolve on render', () => {
       sinon.stub(Example.prototype, 'render').returns(rendered);
       ConnectedExample = connect(styles)(Example);
 
@@ -127,7 +126,7 @@ describe('connector', () => {
       expect(resolver).to.have.been.calledWith({rendered, styles, context: subject, options: {}});
     });
 
-    it('passes the connection options to the resolver', () => {
+    it('passes the connection options to resolve', () => {
       let options = {foo: 'bar'};
       ConnectedExample = connect(styles, options)(Example);
 
@@ -135,45 +134,10 @@ describe('connector', () => {
       expect(resolver.lastCall.args[0].options).to.equal(options);
     });
 
-    it('returns the result of the resolver', () => {
+    it('returns the result of the resolve call', () => {
       resolver.returns(rendered);
       ConnectedExample = connect(styles)(Example);
       expect(new ConnectedExample().render()).to.equal(rendered);
-    });
-  });
-
-  describe('#stylesFor', () => {
-    let subject;
-
-    beforeEach(() => {
-      Example = connect(styles)(Example);
-      subject = new Example();
-    });
-
-    it('adds a #stylesFor method to the component', () => {
-      expect(subject.stylesFor).to.be.a('function');
-    });
-
-    it('sets the context as the component', () => {
-      subject.stylesFor('component');
-      expect(styles.attach).to.have.been.calledWith(subject);
-    });
-
-    it('asks the style object for styles for the passed component', () => {
-      subject.stylesFor('component');
-      expect(styles.for).to.have.been.calledWith('component');
-    });
-
-    it('does not override an existing stylesFor method', () => {
-      class CustomExample {
-        stylesFor() { return 'foo'; }
-      }
-
-      let originalStylesFor = CustomExample.prototype.stylesFor;
-      Example = connect(styles)(CustomExample);
-      subject = new Example();
-
-      expect(subject.stylesFor).to.equal(originalStylesFor);
     });
   });
 });
