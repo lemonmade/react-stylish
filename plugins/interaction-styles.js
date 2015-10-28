@@ -1,3 +1,5 @@
+import _ from 'lodash';
+
 const INTERACTION_STATES = ['hover', 'focus', 'active'];
 const PSEUDO_INTERACTION_STATES = INTERACTION_STATES.map((state) => `:${state}`);
 const KEYS_FOR_ACTIVE = [' ', 'enter'];
@@ -24,9 +26,7 @@ const InteractionStylesPlugin = {
 
     STATES.forEach((state, index) => {
       let normalizeState = INTERACTION_STATES[index];
-      if (interactions[normalizeState][component] == null) {
-        interactions[normalizeState][component] = Boolean(rule[state]);
-      }
+      interactions[normalizeState][component] = interactions[normalizeState][component] || Boolean(rule[state]);
     });
 
     cache[stylesheet.id] = interactions;
@@ -46,8 +46,19 @@ const InteractionStylesPlugin = {
     return result;
   },
 
-  resolve(rules, {props, component, stylesheet, state, setState}) {
-    let interactionState = state.interactions || {hover: {}, focus: {}, active: {}};
+  resolve(rules, {stylishState, component}) {
+    let interactionState = stylishState.interactions || {hover: {}, focus: {}, active: {}};
+
+    return _.flatten(INTERACTION_STATES.filter((name) => {
+      return interactionState[name][component] && rules[name];
+    }).map((name) => {
+      return rules[name];
+    }));
+  },
+
+  augment(props, {component, stylesheet, stylishState, setState}) {
+    let newProps = {};
+    let interactionState = stylishState.interactions || {hover: {}, focus: {}, active: {}};
     let statePresence = cache[stylesheet.id] || {hover: {}, focus: {}, active: {}};
 
     function setInteractionState(stateName, value) {
@@ -61,13 +72,13 @@ const InteractionStylesPlugin = {
 
     if (statePresence.hover[component]) {
       let originalOnMouseEnter = props.onMouseEnter;
-      props.onMouseEnter = function(event) {
+      newProps.onMouseEnter = function(event) {
         if (originalOnMouseEnter) { originalOnMouseEnter.call(this, event); }
         setInteractionState('hover', true);
       };
 
       let originalOnMouseLeave = props.onMouseLeave;
-      props.onMouseLeave = function(event) {
+      newProps.onMouseLeave = function(event) {
         if (originalOnMouseLeave) { originalOnMouseLeave.call(this, event); }
         setInteractionState('hover', false);
       };
@@ -75,13 +86,13 @@ const InteractionStylesPlugin = {
 
     if (statePresence.focus[component]) {
       let originalOnFocus = props.onFocus;
-      props.onFocus = function(event) {
+      newProps.onFocus = function(event) {
         if (originalOnFocus) { originalOnFocus.call(this, event); }
         setInteractionState('focus', true);
       };
 
       let originalOnBlur = props.onBlur;
-      props.onBlur = function(event) {
+      newProps.onBlur = function(event) {
         if (originalOnBlur) { originalOnBlur.call(this, event); }
         setInteractionState('focus', false);
       };
@@ -89,7 +100,7 @@ const InteractionStylesPlugin = {
 
     if (statePresence.active[component]) {
       let originalOnKeyDown = props.onKeyDown;
-      props.onKeyDown = function(event) {
+      newProps.onKeyDown = function(event) {
         if (originalOnKeyDown) { originalOnKeyDown.call(this, event); }
         if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
           setInteractionState('active', true);
@@ -97,7 +108,7 @@ const InteractionStylesPlugin = {
       };
 
       let originalOnKeyUp = props.onKeyUp;
-      props.onKeyUp = function(event) {
+      newProps.onKeyUp = function(event) {
         if (originalOnKeyUp) { originalOnKeyUp.call(this, event); }
         if (KEYS_FOR_ACTIVE.indexOf(event.key.toLowerCase()) >= 0) {
           setInteractionState('active', false);
@@ -105,21 +116,17 @@ const InteractionStylesPlugin = {
       };
 
       let originalOnMouseDown = props.onMouseDown;
-      props.onMouseDown = function(event) {
+      newProps.onMouseDown = function(event) {
         if (originalOnMouseDown) { originalOnMouseDown.call(this, event); }
         setInteractionState('active', true);
       };
 
-      if (state.interactions.active[component]) {
+      if (interactionState.active[component]) {
         nextMouseupListener(() => setInteractionState('active', false));
       }
     }
 
-    return INTERACTION_STATES.filter((name) => {
-      return interactionState[name][component] && rules[name];
-    }).map((name) => {
-      return rules[name];
-    });
+    return newProps;
   },
 
   reset() { cache = {}; },

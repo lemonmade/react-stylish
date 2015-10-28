@@ -10,6 +10,7 @@ describe('StyleSheet', () => {
   const objectRule = Object.freeze({color: 'red'});
   const functionRuleResult = Object.freeze({backgroundColor: 'white'});
   const functionRule = sinon.stub().returns(functionRuleResult);
+  const numberRule = 42;
   let stylesheet;
 
   beforeEach(() => {
@@ -41,9 +42,9 @@ describe('StyleSheet', () => {
       });
 
       it('stores a number rule', () => {
-        stylesheet.add({[component]: 42}, {base: true});
+        stylesheet.add({[component]: numberRule}, {base: true});
         let {rules} = stylesheet;
-        expect(rules[component].base.base).to.deep.equal([42]);
+        expect(rules[component].base.base).to.deep.equal([numberRule]);
       });
 
       it('stores a wrapped function rule', () => {
@@ -67,6 +68,16 @@ describe('StyleSheet', () => {
 
         expect(rule[0]).to.equal(objectRule);
         expect(rule[1]()).to.equal(functionRuleResult);
+      });
+
+      it('stores a resolved object as a rule directly on the stylesheet', () => {
+        stylesheet.add({[component]: [objectRule, functionRule]}, {base: true});
+        expect(stylesheet[component]).to.equal(objectRule);
+      });
+
+      it('stores a resolved number as a rule directly on the stylesheet', () => {
+        stylesheet.add({[component]: [numberRule, functionRule]}, {base: true});
+        expect(stylesheet[component]).to.equal(numberRule);
       });
     });
 
@@ -188,10 +199,14 @@ describe('StyleSheet', () => {
         });
 
         it('extracts parts of rules based on add plugins', () => {
-          stylesheet.add({[component]: {hover: ruleOne, focus: ruleTwo, ...ruleOne}}, {base: true});
-          let {rules} = stylesheet;
+          let rules = {hover: ruleOne, focus: ruleTwo, ...ruleOne};
+          stylesheet.add({[component]: rules}, {base: true});
 
-          expect(rules[component].base).to.deep.equal({
+          let pluginOneArgs = pluginOne.add.lastCall.args;
+
+          expect(pluginOneArgs[0]).to.equal(rules);
+          expect(pluginOneArgs[1]).to.deep.equal({stylesheet, component, pseudo: config.pseudo});
+          expect(stylesheet.rules[component].base).to.deep.equal({
             base: [ruleOne],
             hover: [ruleOne],
             focus: [ruleTwo],
@@ -201,8 +216,8 @@ describe('StyleSheet', () => {
 
       describe('create', () => {
         beforeEach(() => {
-          pluginOne = {create: sinon.stub().returns(42)};
-          pluginTwo = {create: sinon.stub().returns(43)};
+          pluginOne = {create: sinon.stub().returns(numberRule)};
+          pluginTwo = {create: sinon.stub().returns(numberRule + 1)};
           configure({plugins: [pluginOne, pluginTwo]});
         });
 
@@ -217,9 +232,9 @@ describe('StyleSheet', () => {
 
           expect(pluginOneArgs[0]).to.equal(objectRule);
           expect(pluginOneArgs[1]).to.deep.equal(expectedOptions);
-          expect(pluginTwoArgs[0]).to.equal(42);
+          expect(pluginTwoArgs[0]).to.equal(numberRule);
           expect(pluginTwoArgs[1]).to.deep.equal(expectedOptions);
-          expect(rules[component].base.base).to.deep.equal([43]);
+          expect(rules[component].base.base).to.deep.equal([numberRule + 1]);
         });
 
         it('calls create plugins on the result of function-wrapped rules', () => {
@@ -234,9 +249,15 @@ describe('StyleSheet', () => {
 
           expect(pluginOneArgs[0]).to.equal(functionRuleResult);
           expect(pluginOneArgs[1]).to.deep.equal(expectedOptions);
-          expect(pluginTwoArgs[0]).to.equal(42);
+          expect(pluginTwoArgs[0]).to.equal(numberRule);
           expect(pluginTwoArgs[1]).to.deep.equal(expectedOptions);
-          expect(result).to.equal(43);
+          expect(result).to.equal(numberRule + 1);
+        });
+
+        it('stores the resulting rule from a create plugin directly on the stylesheet', () => {
+          configure({plugins: [pluginOne]});
+          stylesheet.add({[component]: objectRule}, {base: true});
+          expect(stylesheet[component]).to.equal(numberRule);
         });
       });
     });

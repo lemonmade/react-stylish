@@ -1,13 +1,12 @@
 import * as _ from './utilities';
 import config from './config';
-// import {applyCreatePlugins} from '../plugins/apply-plugins';
 
 let stylesheetIndex = 1;
 
 class Rule {
-  constructor(base) {
+  constructor(base = {base: []}) {
     Object.defineProperty(this, 'base', {
-      value: base ? resolveComponentRules(base) : [],
+      value: base,
       enumerable: false,
     });
   }
@@ -16,11 +15,11 @@ class Rule {
     if (args.length === 3) {
       let [name, value, rules] = args;
       this[name] = this[name] || {};
-      this[name][value] = resolveComponentRules(rules);
+      this[name][value] = rules;
     } else {
       let [name, rules] = args;
       this[name] = this[name] || {};
-      this[name].true = resolveComponentRules(rules);
+      this[name].true = rules;
     }
   }
 }
@@ -37,10 +36,13 @@ export default class StyleSheet {
   add(rules, {base = false} = {}) {
     Object.keys(rules).forEach((name) => {
       if (base) {
-        this.rules[name] = new Rule(rules[name]);
+        this.rules[name] = new Rule(resolveComponentRules(rules[name], {
+          component: name,
+          stylesheet: this,
+        }));
 
         // this[name] = this.for(name);
-        this[name] = this[name] || rules[name];
+        this[name] = this[name] || this.rules[name].base.base.filter((rule) => !_.isFunction(rule))[0];
 
         return;
       }
@@ -54,7 +56,10 @@ export default class StyleSheet {
       if (isBoolean) {
         Object.keys(variationRules).forEach((component) => {
           let componentRule = this.rules[component] || new Rule();
-          componentRule.variation(name, variationRules[component]);
+          componentRule.variation(name, resolveComponentRules(variationRules[component], {
+            component,
+            stylesheet: this,
+          }));
           this.rules[component] = componentRule;
         });
       } else {
@@ -63,7 +68,10 @@ export default class StyleSheet {
 
           Object.keys(variationValueRules).forEach((component) => {
             let componentRule = this.rules[component] || new Rule();
-            componentRule.variation(name, variationValue, variationValueRules[component]);
+            componentRule.variation(name, variationValue, resolveComponentRules(variationValueRules[component], {
+              component,
+              stylesheet: this,
+            }));
             this.rules[component] = componentRule;
           });
         });
@@ -121,7 +129,8 @@ function finalRuleResolution(rule) {
   }
 }
 
-function resolveComponentRules(rules) {
+function resolveComponentRules(rules, {component, stylesheet}) {
+  let options = {component, stylesheet, pseudo: config.pseudo};
   let componentRules = {base: []};
 
   _.asArray(rules).forEach((rule) => {
@@ -133,7 +142,7 @@ function resolveComponentRules(rules) {
     config.plugins
       .filter((plugin) => Boolean(plugin.add))
       .forEach((plugin) => {
-        let result = plugin.add(rule);
+        let result = plugin.add(rule, options);
 
         Object.keys(result).forEach((ruleKey) => {
           let relevantRules = result[ruleKey];

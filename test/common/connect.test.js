@@ -9,7 +9,7 @@ describe('connect', () => {
   let rendered;
   let resolver;
   let connect;
-  let styles = new StyleSheet();
+  let stylesheet = new StyleSheet();
 
   beforeEach(() => {
     resolver = sinon.stub();
@@ -66,7 +66,7 @@ describe('connect', () => {
       };
 
       Object.defineProperties(Example, classProperties);
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
 
       Object.keys(classProperties).forEach((prop) => {
         let descriptor = Object.getOwnPropertyDescriptor(Example, prop);
@@ -77,7 +77,7 @@ describe('connect', () => {
     it('copies the original class displayName', () => {
       let displayName = 'Component';
       Example.displayName = displayName;
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
       expect(ConnectedExample.displayName).to.equal(displayName);
     });
   });
@@ -85,7 +85,7 @@ describe('connect', () => {
   describe('#componentWillMount', () => {
     it('calls the original componentWillMount if set', () => {
       let originalWillMount = Example.prototype.componentWillMount = sinon.spy();
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
 
       let subject = new ConnectedExample();
       subject.componentWillMount();
@@ -95,7 +95,7 @@ describe('connect', () => {
     it('calls setState with some initial Stylish state', () => {
       sinon.stub(Example.prototype, 'setState');
       let setState = Example.prototype.setState;
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
 
       let subject = new ConnectedExample();
       subject.componentWillMount();
@@ -110,7 +110,7 @@ describe('connect', () => {
     it('overrides render to call the original, then return the resolved component', () => {
       sinon.stub(Example.prototype, 'render').returns(rendered);
       let originalRender = Example.prototype.render;
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
 
       let subject = new ConnectedExample();
       subject.render();
@@ -119,24 +119,24 @@ describe('connect', () => {
 
     it('calls resolve on render', () => {
       sinon.stub(Example.prototype, 'render').returns(rendered);
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
 
       let subject = new ConnectedExample();
       subject.render();
-      expect(resolver).to.have.been.calledWith({rendered, styles, context: subject, options: {}});
+      expect(resolver).to.have.been.calledWith(rendered, subject, stylesheet, {});
     });
 
     it('passes the connection options to resolve', () => {
       let options = {foo: 'bar'};
-      ConnectedExample = connect(styles, options)(Example);
+      ConnectedExample = connect(stylesheet, options)(Example);
 
       new ConnectedExample().render();
-      expect(resolver.lastCall.args[0].options).to.equal(options);
+      expect(resolver.lastCall.args[3]).to.equal(options);
     });
 
     it('returns the result of the resolve call', () => {
       resolver.returns(rendered);
-      ConnectedExample = connect(styles)(Example);
+      ConnectedExample = connect(stylesheet)(Example);
       expect(new ConnectedExample().render()).to.equal(rendered);
     });
   });

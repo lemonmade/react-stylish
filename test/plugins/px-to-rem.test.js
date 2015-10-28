@@ -49,7 +49,7 @@ describe('plugins', () => {
       let rule = {padding: 32, width: 300};
       let ruleCopy = {...rule};
 
-      pxToRem({rule, React: {isDom: false}});
+      pxToRem(rule, {React: {isDom: false}});
       expect(rule).to.deep.equal(ruleCopy);
     });
 

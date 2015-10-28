@@ -3,7 +3,9 @@
 // - reserve: Reserves a rule key for use by a plugin (e.g., 'hover')
 // - add: Extracts some keys (which sould be reserved) from a rule.
 // - create: Does something to the final version of the rules.
-// - resolve: Determines which rules should actually be applied.
+//
+// - resolve: Select additional rules to apply.
+// - augment: Adds additional properties to nodes.
 // - attach: Manipulates the matching rules before they are attached to the component.
 
 import InteractionStyles from './interaction-styles';

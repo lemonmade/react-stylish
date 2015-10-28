@@ -1,38 +1,30 @@
 import _ from 'lodash';
 import config from './config';
-// import {applyAttachPlugins} from '../plugins/apply-plugins';
-function applyAttachPlugins() {}
-// import * as _ from '../common/utilities';
 
 const IDENTIFIER_SPLITTER = /\s+/;
 
-export default function resolve({rendered, styles, context, options = {}}) {
+export default function resolve(element, context, stylesheet, options = {}) {
   options = {...config, ...options};
   options.visit = visitStrategy(options);
-  options.variationMapping = options.variationMapping && options.variationMapping(context);
-  styles.attach(context);
+  options.variationMapping = (options.variationMapping && options.variationMapping(context)) || {};
+  options.level = 1;
 
-  return resolveElement({element: rendered, context, styles, level: 1, options});
+  return resolveElement(element, null, 0, context, stylesheet, options);
 }
 
-function resolveElement({element, styles, context, level, options}) {
-  let {React} = options;
+function resolveElement(element, parent, index, context, stylesheet, options) {
+  let {React, level} = options;
 
   if (_.isFunction(element)) {
-    return composedFunction({func: element, styles, context, level, options});
+    return composedFunction(element, parent, index, context, stylesheet, options);
   }
 
   if (!element.props || !options.visit(element, level)) { return element; }
 
-  let newChildren = resolveChildren({
-    children: element.props.children,
-    styles,
-    context,
-    level: level + 1,
-    options,
-  });
-
-  let newProps = resolveProps({element, styles, context, options});
+  options.level += 1;
+  let newChildren = resolveChildren(element.props.children, element, context, stylesheet, options);
+  let newProps = resolveProps(element, parent, index, context, stylesheet, options);
+  options.level -= 1;
 
   if (
     newProps === element.props &&
@@ -42,60 +34,156 @@ function resolveElement({element, styles, context, level, options}) {
   return React.cloneElement(element, newProps !== element.props ? newProps : {}, newChildren);
 }
 
-function resolveProps({element, context, styles, options}) {
-  let {identifier} = options;
+function styleIsPresent(style) {
+  return !((_.isArray(style) || _.isObject(style)) && _.isEmpty(style));
+}
 
-  let name = element.props[identifier];
-  if (!name) { return element.props; }
+function resolveProps(element, parent, index, context, stylesheet, options) {
+  let {props} = element;
+  let identifier = props[options.identifier];
+  if (!identifier) { return props; }
 
-  let props = {...element.props};
-  let rules = _.flatten(name.split(IDENTIFIER_SPLITTER).map((id) => {
-    return styles.for(id, options.variationMapping);
-  }));
+  let identifiers = identifier.split(IDENTIFIER_SPLITTER);
+  let style = resolveStyles(element, parent, index, context, stylesheet, options);
 
-  if (props.style) {
-    rules.push(props.style);
+  let stylishState = (context.state && context.state.stylishState) || {};
+  let augmentOptions = {
+    React: config.React,
+    stylishState,
+    context,
+    element,
+    stylesheet,
+    parent,
+    index,
+    setState(newState) {
+      context.setState({stylishState: {...stylishState, ...newState}});
+    },
+  };
+
+  let newProps = config.plugins
+    .filter((plugin) => Boolean(plugin.augment))
+    .map((plugin) => {
+      return identifiers.map((id) => {
+        augmentOptions.component = id;
+        return plugin.augment(props, augmentOptions);
+      });
+    });
+
+  newProps = _.merge({}, ..._.flatten(newProps, true));
+
+  if (styleIsPresent(style)) {
+    props = {...props, style};
   }
 
-  rules = applyAttachPlugins({rules});
-  if (!_.isEmpty(rules)) { props.style = rules; }
+  if (!_.isEmpty(newProps)) {
+    props = {...props, ...newProps};
+  }
+
   return props;
 }
 
-function resolveChildren({children, styles, context, level, options}) {
-  let {React} = options;
+function resolveStyles(element, parent, index, context, stylesheet, options) {
+  let identifier = element.props[options.identifier];
+  let {state = {}, props = {}} = context;
+  let {variationMapping} = options;
+  let resolveOptions = {
+    React: config.React,
+    stylishState: state.stylishState || {},
+    context,
+    element,
+    stylesheet,
+    parent,
+    index,
+  };
+
+  function variationValue(variation) {
+    let value = null;
+    let variationDetails = stylesheet.variationDetails[variation];
+
+    if (variationMapping[variation] != null) {
+      value = variationMapping[variation];
+    } else if (state[variation] != null) {
+      value = state[variation];
+    } else {
+      value = props[variation];
+    }
+
+    if (value == null) { return value; }
+    return (variationDetails.isBoolean ? Boolean(value) : value).toString();
+  }
+
+  let rules = identifier.split(IDENTIFIER_SPLITTER).map((id) => {
+    let componentRules = stylesheet.rules[id];
+    if (!componentRules) { return null; }
+
+    resolveOptions.component = id;
+    let baseRules = resolveRules(componentRules.base, resolveOptions);
+
+    let variationRules = Object.keys(componentRules).map((variation) => {
+      let value = variationValue(variation);
+      if (value == null) { return null; }
+      return resolveRules(componentRules[variation][value], resolveOptions);
+    });
+
+    return [baseRules, variationRules];
+  });
+
+  if (element.props.style) {
+    rules.push(element.props.style);
+  }
+
+  rules = _.compact(_.flatten(rules, true));
+
+  let attachOptions = {React: config.React};
+  config.plugins
+    .filter((plugin) => Boolean(plugin.attach))
+    .forEach((plugin) => rules = plugin.attach(rules, attachOptions));
+
+  return rules;
+}
+
+function resolveRules(rules, resolveOptions) {
+  if (!rules) { return null; }
+  let {context} = resolveOptions;
+
+  let pluginRules = config.plugins
+    .filter((plugin) => Boolean(plugin.resolve))
+    .map((plugin) => plugin.resolve(rules, resolveOptions));
+
+  return _.flatten(rules.base.concat(pluginRules)).map((rule) => {
+    return _.isFunction(rule) ? rule.call(context, context) : rule;
+  });
+}
+
+function resolveChildren(children, parent, context, stylesheet, options) {
+  let {React, level} = options;
+  let {Children, isValidElement} = React;
 
   if (!options.visit(children, level)) {
     return children;
   }
 
   if (_.isFunction(children)) {
-    return composedFunction({func: children, styles, context, level, options});
+    return composedFunction(children, parent, 0, context, stylesheet, options);
   }
 
-  if (React.Children.count(children) === 1 && children.type) {
-    return resolveElement({
-      element: React.Children.only(children),
-      styles,
-      context,
-      level,
-      options,
-    });
+  if (Children.count(children) === 1 && children.type) {
+    return resolveElement(Children.only(children), parent, 0, context, stylesheet, options);
   }
 
-  return React.Children.map(children, (child) => {
-    if (!React.isValidElement(child)) { return child; }
-    return resolveElement({element: child, styles, context, level, options});
+  return Children.map(children, (child, index) => {
+    if (!isValidElement(child)) { return child; }
+    return resolveElement(child, parent, index, context, stylesheet, options);
   });
 }
 
-function composedFunction({func, styles, context, level, options}) {
+function composedFunction(func, parent, index, context, stylesheet, options) {
   return function() {
     let {React} = options;
     let element = func.apply(this, arguments);
 
     if (!React.isValidElement(element)) { return element; }
-    return resolveElement({element, styles, context, level, options});
+    return resolveElement(element, parent, index, context, stylesheet, {...options});
   };
 }
 

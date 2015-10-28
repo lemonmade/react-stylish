@@ -1,7 +1,7 @@
 import resolve from './resolve';
 
 export function createConnector(resolver) {
-  return function connect(styles, options = {}) {
+  return function connect(stylesheet, options = {}) {
     return function(Component) {
       let {render, componentWillMount} = Component.prototype;
 
@@ -11,8 +11,8 @@ export function createConnector(resolver) {
       };
 
       Component.prototype.render = function() {
-        let rendered = render.apply(this, arguments);
-        return resolver({rendered, styles, options, context: this});
+        let element = render.apply(this, arguments);
+        return resolver(element, this, stylesheet, options);
       };
 
       return Component;
