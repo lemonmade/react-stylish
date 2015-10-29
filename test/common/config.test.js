@@ -1,6 +1,6 @@
 import '../helper';
 
-import config, {configure} from '../../common/config';
+import config, {configure} from '../../src/common/config';
 
 describe('configure', () => {
   it('overwrites existing properties', () => {

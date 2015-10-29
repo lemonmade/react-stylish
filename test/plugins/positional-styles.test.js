@@ -1,6 +1,6 @@
 import '../helper';
-import _ from 'lodash';
-import PositionalStylesPlugin from '../../plugins/positional-styles';
+import {isArray} from '../../src/common/utilities';
+import PositionalStylesPlugin from '../../src/plugins/positional-styles';
 
 describe('plugins', () => {
   describe('PositionalStylesPlugin', () => {
@@ -62,7 +62,7 @@ describe('plugins', () => {
       const React = {
         Children: {
           count(children) {
-            if (_.isArray(children)) { return children.length; }
+            if (isArray(children)) { return children.length; }
             return 1;
           },
         },

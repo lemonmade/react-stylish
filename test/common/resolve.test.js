@@ -1,10 +1,9 @@
 import '../helper';
 
 import React from 'react';
-import resolve from '../../common/resolve';
-import config, {configure} from '../../common/config';
-import StyleSheet from '../../common/StyleSheet';
-import _ from 'lodash';
+import resolve from '../../src/common/resolve';
+import config, {configure} from '../../src/common/config';
+import StyleSheet from '../../src/common/StyleSheet';
 
 describe('resolve', () => {
   const ruleOne = Object.freeze({backgroundColor: 'red'});

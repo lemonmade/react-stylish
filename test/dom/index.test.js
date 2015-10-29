@@ -1,8 +1,8 @@
 import '../helper';
 
-import Stylish from '../..';
-import * as SeparateStylish from '../..';
-import * as Plugins from '../../plugins';
+import Stylish from '../../src/dom';
+import * as SeparateStylish from '../../src/dom';
+import * as Plugins from '../../src/plugins';
 
 describe('Stylish DOM', () => {
   describe('exports', () => {

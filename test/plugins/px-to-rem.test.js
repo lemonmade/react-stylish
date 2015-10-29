@@ -1,5 +1,5 @@
 import '../helper';
-import PxToRemPlugin from '../../plugins/px-to-rem';
+import PxToRemPlugin from '../../src/plugins/px-to-rem';
 
 describe('plugins', () => {
   describe('PxToRemPlugin', () => {

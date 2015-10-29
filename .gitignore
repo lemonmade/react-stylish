@@ -1,6 +1,8 @@
 .DS_STORE
 node_modules
-npm-debug.log
+*.log
 .idea
 reports
 *.sublime-*
+dist
+lib

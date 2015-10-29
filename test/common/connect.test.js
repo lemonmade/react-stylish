@@ -1,7 +1,7 @@
 import '../helper';
 import React from 'react';
-import {createConnector} from '../../common/connect';
-import StyleSheet from '../../common/StyleSheet';
+import {createConnector} from '../../src/common/connect';
+import StyleSheet from '../../src/common/StyleSheet';
 
 describe('connect', () => {
   let Example;

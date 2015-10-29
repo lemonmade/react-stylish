@@ -1,4 +1,4 @@
-import {configure} from '../common/config';
+import {configure} from '../src/common/config';
 
 beforeEach(() => {
   configure.defaults();

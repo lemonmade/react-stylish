@@ -1,5 +1,5 @@
 import '../helper';
-import VendorPrefixesPlugin from '../../plugins/vendor-prefixes';
+import VendorPrefixesPlugin from '../../src/plugins/vendor-prefixes';
 
 describe('plugins', () => {
   describe('VendorPrefixesPlugin', () => {

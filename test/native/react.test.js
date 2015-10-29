@@ -1,6 +1,6 @@
 import '../helper';
 
-import React from '../../native/react';
+import React from '../../src/native/react';
 
 describe('Stylish Native', () => {
   describe('React', () => {

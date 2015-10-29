@@ -1,6 +1,6 @@
 import '../helper';
-import StyleSheet from '../../common/StyleSheet';
-import config, {configure} from '../../common/config';
+import StyleSheet from '../../src/common/StyleSheet';
+import config, {configure} from '../../src/common/config';
 
 describe('StyleSheet', () => {
   const component = 'button';

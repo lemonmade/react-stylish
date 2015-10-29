@@ -1,6 +1,6 @@
 import '../helper';
-import StyleSheet from '../../common/StyleSheet';
-import InteractionStylesPlugin from '../../plugins/interaction-styles';
+import StyleSheet from '../../src/common/StyleSheet';
+import InteractionStylesPlugin from '../../src/plugins/interaction-styles';
 
 describe('plugins', () => {
   describe('InteractionStylesPlugin', () => {

@@ -30,20 +30,20 @@ module.exports = function(config) {
       module: {
         loaders: [
           {
-            exclude: /(node_modules|test|lib)/,
+            include: path.resolve('src'),
             loader: 'isparta?babel',
             test: /\.js$/,
           },
 
           {
-            include: path.resolve('test/'),
+            include: path.resolve('test'),
             loader: 'babel',
             test: /\.js$/,
           },
 
           {
             include: path.resolve('node_modules/react-native'),
-            loader: 'lib/loaders/react-native',
+            loader: 'scripts/loaders/react-native',
             test: /\.js$/,
           },
         ],
@@ -71,7 +71,7 @@ module.exports = function(config) {
       dir: 'reports/coverage',
       // type: 'text',
       reporters: [
-        {type: 'text', subdir: '.', file: 'text.txt'},
+        {type: 'text'},
         {type: 'html', subdir: 'report-html'},
         {type: 'lcov', subdir: 'report-lcov'},
         {type: 'lcovonly', subdir: '.', file: 'report-lcovonly.txt'},

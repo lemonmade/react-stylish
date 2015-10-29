@@ -1,5 +1,5 @@
 import '../helper';
-import * as utils from '../../common/utilities';
+import * as utils from '../../src/common/utilities';
 
 describe('utilities', () => {
   it('exports lodash.isFunction', () => {

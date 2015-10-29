@@ -1,6 +1,6 @@
 import '../helper';
-import create from '../../common/create';
-import StyleSheet from '../../common/StyleSheet';
+import create from '../../src/common/create';
+import StyleSheet from '../../src/common/StyleSheet';
 
 describe('create', () => {
   it('creates a StyleSheet', () => {

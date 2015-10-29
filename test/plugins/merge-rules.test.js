@@ -1,5 +1,5 @@
 import '../helper';
-import MergeRulesPlugin from '../../plugins/merge-rules';
+import MergeRulesPlugin from '../../src/plugins/merge-rules';
 
 describe('plugins', () => {
   describe('MergeRulesPlugin', () => {

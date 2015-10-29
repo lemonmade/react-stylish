@@ -1,5 +1,5 @@
 import '../helper';
-import ReactStyleSheetPlugin from '../../plugins/react-stylesheet';
+import ReactStyleSheetPlugin from '../../src/plugins/react-stylesheet';
 
 describe('plugins', () => {
   describe('ReactStyleSheetPlugin', () => {
