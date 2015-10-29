@@ -55,8 +55,8 @@ describe('plugins', () => {
     });
 
     describe('.resolve', () => {
-      let stylishState = null;
-      let rules = null;
+      let stylishState;
+      let rules;
 
       function resolve(theRules, options = {stylishState, component}) {
         return InteractionStylesPlugin.resolve(theRules, options);
@@ -128,8 +128,8 @@ describe('plugins', () => {
     });
 
     describe('.augment', () => {
-      let setState = null;
-      let stylishState = null;
+      let setState;
+      let stylishState;
 
       function augment(oldProps = {}) {
         return InteractionStylesPlugin.augment(oldProps, {stylishState, setState, component, stylesheet});

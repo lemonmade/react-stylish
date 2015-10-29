@@ -140,8 +140,8 @@ describe('StyleSheet', () => {
 
     describe('with plugins', () => {
       const key = 'hover';
-      let pluginOne = null;
-      let pluginTwo = null;
+      let pluginOne;
+      let pluginTwo;
 
       describe('reserve', () => {
         beforeEach(() => {

@@ -1,10 +1,6 @@
+import {connect, create, configure} from './common';
+import * as Plugins from './plugins';
 import React from './react';
-
-import connect from '../common/connect';
-import create from '../common/create';
-import {configure} from '../common/config';
-
-import * as Plugins from '../plugins';
 
 configure({
   React,

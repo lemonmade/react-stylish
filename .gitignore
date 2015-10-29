@@ -2,7 +2,7 @@
 node_modules
 *.log
 .idea
-reports
+coverage
 *.sublime-*
 dist
 lib

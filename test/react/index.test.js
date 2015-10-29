@@ -1,6 +1,6 @@
 import '../helper';
 
-import React from '../../src/dom/react';
+import React from '../../src/react';
 
 describe('Stylish DOM', () => {
   describe('React', () => {

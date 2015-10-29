@@ -1,3 +1,5 @@
+/* eslint no-var: 0 */
+
 var path = require('path');
 
 module.exports = function(config) {
@@ -16,9 +18,9 @@ module.exports = function(config) {
       'karma-chrome-launcher',
     ],
 
-    files: ['test/*/**.js'],
+    files: ['test/**/*.test.js'],
     preprocessors: {
-      'test/*/**.js': ['webpack'],
+      'test/**/*.test.js': ['webpack'],
     },
     reporters: ['mocha', 'coverage'],
     singleRun: true,
@@ -68,7 +70,7 @@ module.exports = function(config) {
     },
 
     coverageReporter: {
-      dir: 'reports/coverage',
+      dir: 'coverage',
       // type: 'text',
       reporters: [
         {type: 'text'},

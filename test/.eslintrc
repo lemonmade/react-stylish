@@ -15,6 +15,10 @@
     "no-unused-expressions": 0,
 
     // need to put things in scope for beforeEach
-    "init-declarations": 0
+    "init-declarations": 0,
+
+    // No need for strict React things in tests
+    "react/prop-types": 0,
+    "react/display-name": 0
   }
 }
