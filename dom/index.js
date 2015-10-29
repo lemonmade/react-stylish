@@ -9,7 +9,6 @@ import * as Plugins from '../plugins';
 configure({
   React,
   plugins: [
-    Plugins.PxToRem,
     Plugins.VendorPrefix,
     Plugins.InteractionStyles,
     Plugins.PositionalStyles,

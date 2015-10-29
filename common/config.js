@@ -16,7 +16,11 @@ export function configure(newConfig) {
 
 configure.defaults = function() {
   Object.keys(config).forEach((key) => delete config[key]);
-  configure(DEFAULTS);
+  return configure(DEFAULTS);
+};
+
+configure.addPlugins = function(...plugins) {
+  return configure({plugins: [...config.plugins, ...plugins]});
 };
 
 configure.defaults();

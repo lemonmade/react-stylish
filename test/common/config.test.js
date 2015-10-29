@@ -8,6 +8,18 @@ describe('configure', () => {
     expect(config).to.have.property('identifier', 'foo');
   });
 
+  describe('.addPlugins', () => {
+    it('adds plugins after the existing set of plugins', () => {
+      let pluginOne = {attach() {}};
+      let pluginTwo = {create() {}};
+      let pluginThree = {add() {}};
+
+      configure({plugins: [pluginOne]});
+      configure.addPlugins(pluginTwo, pluginThree);
+      expect(config.plugins).to.deep.equal([pluginOne, pluginTwo, pluginThree]);
+    });
+  });
+
   describe('.defaults', () => {
     it('resets the config to defaults', () => {
       let defaults = {...config};
