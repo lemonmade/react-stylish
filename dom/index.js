@@ -4,15 +4,15 @@ import connect from '../common/connect';
 import create from '../common/create';
 import {configure} from '../common/config';
 
-import {Plugins} from '../plugins';
+import * as Plugins from '../plugins';
 
 configure({
   React,
   plugins: [
-    Plugins.InteractionStyles,
-    Plugins.PositionalStyles,
     Plugins.PxToRem,
     Plugins.VendorPrefix,
+    Plugins.InteractionStyles,
+    Plugins.PositionalStyles,
     Plugins.MergeRules,
   ],
 });

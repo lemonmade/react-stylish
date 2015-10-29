@@ -4,9 +4,15 @@ import connect from '../common/connect';
 import create from '../common/create';
 import {configure} from '../common/config';
 
-import {Plugins} from '../plugins';
+import * as Plugins from '../plugins';
 
-configure({React});
+configure({
+  React,
+  plugins: [
+    Plugins.ReactStyleSheet,
+    Plugins.PositionalStyles,
+  ],
+});
 
 export {
   connect,

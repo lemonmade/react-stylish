@@ -15,11 +15,11 @@ import PxToRem from './px-to-rem';
 import ReactStyleSheet from './react-stylesheet';
 import VendorPrefix from './vendor-prefixes';
 
-export const Plugins = Object.freeze({
+export {
   InteractionStyles,
+  MergeRules,
   PositionalStyles,
   PxToRem,
-  VendorPrefix,
   ReactStyleSheet,
-  MergeRules,
-});
+  VendorPrefix,
+};
