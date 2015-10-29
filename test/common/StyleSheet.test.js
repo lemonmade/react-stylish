@@ -41,12 +41,6 @@ describe('StyleSheet', () => {
         expect(rules[component].base.base).to.deep.equal([objectRule]);
       });
 
-      it('stores a number rule', () => {
-        stylesheet.add({[component]: numberRule}, {base: true});
-        let {rules} = stylesheet;
-        expect(rules[component].base.base).to.deep.equal([numberRule]);
-      });
-
       it('stores a wrapped function rule', () => {
         stylesheet.add({[component]: functionRule}, {base: true});
 
@@ -259,6 +253,34 @@ describe('StyleSheet', () => {
           stylesheet.add({[component]: objectRule}, {base: true});
           expect(stylesheet[component]).to.equal(numberRule);
         });
+      });
+    });
+
+    describe('when single component', () => {
+      it('does not set the stylesheet to be a single component when it has an explicit component', () => {
+        stylesheet.add({root: objectRule}, {base: true});
+        expect(stylesheet.isSingleComponent).to.be.false;
+      });
+
+      it('recognizes a single component by the depth of the arguments', () => {
+        stylesheet.add(objectRule, {base: true});
+        expect(stylesheet.isSingleComponent).to.be.true;
+        expect(stylesheet.root).to.deep.equal(objectRule);
+        expect(stylesheet.rules.root.base).to.deep.equal({base: [objectRule]});
+      });
+
+      it('associates boolean rules to single components', () => {
+        stylesheet.add(objectRule, {base: true});
+        stylesheet.add({[booleanVariation]: objectRule});
+        expect(stylesheet.rules.root[booleanVariation].true).to.deep.equal({base: [objectRule]});
+        expect(stylesheet.variationDetails[booleanVariation]).to.have.property('isBoolean', true);
+      });
+
+      it('associates enumerable rules to single components', () => {
+        stylesheet.add(objectRule, {base: true});
+        stylesheet.add({[enumerableVariation]: {[enumerableVariationValue]: objectRule}});
+        expect(stylesheet.rules.root[enumerableVariation][enumerableVariationValue]).to.deep.equal({base: [objectRule]});
+        expect(stylesheet.variationDetails[enumerableVariation]).to.have.property('isBoolean', false);
       });
     });
   });

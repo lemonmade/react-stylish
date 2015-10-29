@@ -40,7 +40,7 @@ function styleIsPresent(style) {
 
 function resolveProps(element, parent, index, context, stylesheet, options) {
   let {props} = element;
-  let identifier = props[options.identifier];
+  let identifier = stylesheet.isSingleComponent ? 'root' : props[options.identifier];
   if (!identifier) { return props; }
 
   let identifiers = identifier.split(IDENTIFIER_SPLITTER);
@@ -83,7 +83,7 @@ function resolveProps(element, parent, index, context, stylesheet, options) {
 }
 
 function resolveStyles(element, parent, index, context, stylesheet, options) {
-  let identifier = element.props[options.identifier];
+  let identifier = stylesheet.isSingleComponent ? 'root' : element.props[options.identifier];
   let {state = {}, props = {}} = context;
   let {variationMapping} = options;
   let resolveOptions = {

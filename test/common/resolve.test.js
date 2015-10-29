@@ -111,7 +111,7 @@ describe('resolve', () => {
 
   it('does not do anything special with number rules', () => {
     const numberRule = 42;
-    stylesheet = new StyleSheet({root: numberRule});
+    stylesheet = new StyleSheet({root: [numberRule]});
     result = resolve(<div styled="root" />, context, stylesheet);
     expect(result.props.style).to.deep.equal([numberRule]);
   });
@@ -285,6 +285,37 @@ describe('resolve', () => {
         result = resolve(<div styled="root" />, context, stylesheet);
         expect(result.props.style).to.deep.equal([numberRule]);
       });
+    });
+  });
+
+  describe('with single components', () => {
+    beforeEach(() => {
+      stylesheet = new StyleSheet();
+      stylesheet.base(ruleOne);
+    });
+
+    it('adds base styles', () => {
+      result = resolve(<div styled />, context, stylesheet);
+      expect(result.props.style).to.deep.equal([ruleOne]);
+    });
+
+    it('adds boolean variation styles', () => {
+      let booleanVariation = 'primary';
+      stylesheet.variation(booleanVariation, ruleTwo);
+      context = {props: {[booleanVariation]: true}};
+      result = resolve(<div styled />, context, stylesheet);
+
+      expect(result.props.style).to.deep.equal([ruleOne, ruleTwo]);
+    });
+
+    it('adds enumerable variation styles', () => {
+      let enumerableVariation = 'size';
+      let enumerableVariationValue = 'large';
+      stylesheet.variation(enumerableVariation, {[enumerableVariationValue]: ruleTwo});
+      context = {props: {[enumerableVariation]: enumerableVariationValue}};
+      result = resolve(<div styled />, context, stylesheet);
+
+      expect(result.props.style).to.deep.equal([ruleOne, ruleTwo]);
     });
   });
 

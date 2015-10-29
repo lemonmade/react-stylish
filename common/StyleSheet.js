@@ -27,6 +27,7 @@ class Rule {
 export default class StyleSheet {
   rules = {};
   variationDetails = {};
+  isSingleComponent = false;
   id = stylesheetIndex++;
 
   constructor(baseRules = {}) {
@@ -34,29 +35,41 @@ export default class StyleSheet {
   }
 
   add(rules, {base = false} = {}) {
-    Object.keys(rules).forEach((name) => {
-      if (base) {
-        this.rules[name] = new Rule(resolveComponentRules(rules[name], {
-          component: name,
+    if (base) {
+      let isSingleComponent = (depth(rules) < 2);
+
+      if (isSingleComponent) {
+        this.isSingleComponent = true;
+        rules = {root: rules};
+      }
+
+      Object.keys(rules).forEach((component) => {
+        this.rules[component] = new Rule(resolveComponentRules(rules[component], {
+          component,
           stylesheet: this,
         }));
 
-        // this[name] = this.for(name);
-        this[name] = this[name] || this.rules[name].base.base.filter((rule) => !_.isFunction(rule))[0];
+        this[component] = this[component] || this.rules[component].base.base.filter((rule) => !_.isFunction(rule))[0];
+      });
 
-        return;
-      }
+      return this;
+    }
 
-      let variationRules = rules[name];
+    Object.keys(rules).forEach((variation) => {
+      let variationRules = rules[variation];
+      let {isSingleComponent} = this;
+      let enumerableDepth = isSingleComponent ? 2 : 3;
       // Boolean properties are in the form {component: {rules}}
       // Non-boolean properties are in the form {val: {component: {rules}}}
-      let isBoolean = (depth(variationRules) < 3);
-      this.variationDetails[name] = {isBoolean};
+      let isBoolean = (depth(variationRules) < enumerableDepth);
+      this.variationDetails[variation] = {isBoolean};
 
       if (isBoolean) {
+        if (isSingleComponent) { variationRules = {root: variationRules}; }
+
         Object.keys(variationRules).forEach((component) => {
           let componentRule = this.rules[component] || new Rule();
-          componentRule.variation(name, resolveComponentRules(variationRules[component], {
+          componentRule.variation(variation, resolveComponentRules(variationRules[component], {
             component,
             stylesheet: this,
           }));
@@ -65,10 +78,11 @@ export default class StyleSheet {
       } else {
         Object.keys(variationRules).forEach((variationValue) => {
           let variationValueRules = variationRules[variationValue];
+          if (isSingleComponent) { variationValueRules = {root: variationValueRules}; }
 
           Object.keys(variationValueRules).forEach((component) => {
             let componentRule = this.rules[component] || new Rule();
-            componentRule.variation(name, variationValue, resolveComponentRules(variationValueRules[component], {
+            componentRule.variation(variation, variationValue, resolveComponentRules(variationValueRules[component], {
               component,
               stylesheet: this,
             }));
