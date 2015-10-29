@@ -2,7 +2,7 @@ import '../helper';
 
 import Stylish from '../../native';
 import * as SeparateStylish from '../../native';
-import {Plugins} from '../../plugins';
+import * as Plugins from '../../plugins';
 
 describe('Stylish Native', () => {
   describe('exports', () => {

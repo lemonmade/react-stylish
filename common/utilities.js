@@ -1,13 +1,19 @@
+import compact from 'lodash.compact';
+import flatten from 'lodash.flatten';
 import isArray from 'lodash.isarray';
+import isEmpty from 'lodash.isempty';
 import isFunction from 'lodash.isfunction';
 import isNumber from 'lodash.isnumber';
-import compact from 'lodash.compact';
+import merge from 'lodash.merge';
 
 export {
+  compact,
+  flatten,
   isArray,
+  isEmpty,
   isFunction,
   isNumber,
-  compact,
+  merge,
 };
 
 export function isObject(object) {

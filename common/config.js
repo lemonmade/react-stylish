@@ -1,7 +1,5 @@
 // Default options and global configuration
 
-import _ from 'lodash';
-
 const DEFAULTS = Object.freeze({
   React: null,
   identifier: 'styled',
@@ -13,7 +11,7 @@ const DEFAULTS = Object.freeze({
 let config = {};
 
 export function configure(newConfig) {
-  _.assign(config, newConfig);
+  Object.keys(newConfig).forEach((key) => config[key] = newConfig[key]);
 }
 
 configure.defaults = function() {

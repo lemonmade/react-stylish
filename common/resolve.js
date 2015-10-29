@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import * as _ from './utilities';
 import config from './config';
 
 const IDENTIFIER_SPLITTER = /\s+/;

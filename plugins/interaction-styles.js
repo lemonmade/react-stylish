@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import {flatten} from '../common/utilities';
 
 const INTERACTION_STATES = ['hover', 'focus', 'active'];
 const PSEUDO_INTERACTION_STATES = INTERACTION_STATES.map((state) => `:${state}`);
@@ -49,7 +49,7 @@ const InteractionStylesPlugin = {
   resolve(rules, {stylishState, component}) {
     let interactionState = stylishState.interactions || {hover: {}, focus: {}, active: {}};
 
-    return _.flatten(INTERACTION_STATES.filter((name) => {
+    return flatten(INTERACTION_STATES.filter((name) => {
       return interactionState[name][component] && rules[name];
     }).map((name) => {
       return rules[name];

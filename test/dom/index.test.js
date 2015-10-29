@@ -2,7 +2,7 @@ import '../helper';
 
 import Stylish from '../..';
 import * as SeparateStylish from '../..';
-import {Plugins} from '../../plugins';
+import * as Plugins from '../../plugins';
 
 describe('Stylish DOM', () => {
   describe('exports', () => {

@@ -18,6 +18,18 @@ describe('utilities', () => {
     expect(utils.isNumber).to.be.a('function');
   });
 
+  it('exports lodash.isEmpty', () => {
+    expect(utils.isEmpty).to.be.a('function');
+  });
+
+  it('exports lodash.merge', () => {
+    expect(utils.merge).to.be.a('function');
+  });
+
+  it('exports lodash.flatten', () => {
+    expect(utils.flatten).to.be.a('function');
+  });
+
   describe('isObject', () => {
     let {isObject} = utils;
 

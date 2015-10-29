@@ -1,9 +1,9 @@
-import _ from 'lodash';
+import {isArray, merge} from '../common/utilities';
 
 const MergeRulesPlugin = {
   attach(rules, {React}) {
-    if (!_.isArray(rules) || !React.isDom) { return rules; }
-    return _.merge({}, ...rules);
+    if (!isArray(rules) || !React.isDom) { return rules; }
+    return merge({}, ...rules);
   },
 };
 
