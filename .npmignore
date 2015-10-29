@@ -5,6 +5,6 @@
 /.eslint*
 /.gitignore
 /.npmignore
-/circle.yml
+/.travis.yml
 /webpack.*
 /karma.*

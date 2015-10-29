@@ -1,4 +1,4 @@
-# React Native Stylish
+# React Stylish
 
 [![Build status][travis-image]][travis-url] [![NPM version][npm-image]][npm-url]
 

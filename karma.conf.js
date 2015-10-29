@@ -5,7 +5,6 @@ var path = require('path');
 module.exports = function(config) {
   config.set({
     browsers: ['PhantomJS'],
-    // karma only needs to know about the test bundle
     frameworks: ['mocha', 'sinon-chai', 'phantomjs-shim'],
     plugins: [
       'karma-phantomjs-launcher',
