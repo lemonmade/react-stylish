@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "description": "A simple utility for styling components based on their state and props.",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "jsnext:main": "src/index.js",
   "scripts": {
     "clean": "$(npm bin)/rimraf lib dist coverage",
@@ -65,6 +65,7 @@
     "webpack": "^1.12.2"
   },
   "dependencies": {
+    "exenv": "^1.2.0",
     "lodash.compact": "^3.0.0",
     "lodash.flatten": "^3.0.2",
     "lodash.isarray": "^3.0.4",
