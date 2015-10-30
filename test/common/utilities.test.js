@@ -108,4 +108,12 @@ describe('utilities', () => {
       expect(Object.keys(bar)).to.be.empty;
     });
   });
+
+  describe('kebabToCamel', () => {
+    let {kebabToCamel} = utils;
+
+    it('converts kebab case to camel case', () => {
+      expect(kebabToCamel('foo-bar-baz')).to.deep.equal('fooBarBaz');
+    });
+  });
 });

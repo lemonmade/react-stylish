@@ -45,3 +45,9 @@ export function copyPropertyDescriptors({from, to}) {
     }
   });
 }
+
+const KEBAB_REGEX = /[\-\s]+(.)?/g;
+function toUpper(match, char) { return char && char.toUpperCase(); }
+export function kebabToCamel(string) {
+  return string.replace(KEBAB_REGEX, toUpper);
+}
