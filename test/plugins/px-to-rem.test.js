@@ -22,35 +22,72 @@ describe('plugins', () => {
       textStrokeWidth: 1,
     });
 
-    it('converts numbers to the associated rem amounts', () => {
-      let rule = {padding: 32, width: 300};
+    const RULE_WITH_UNITLESS_PROPERTIES = Object.freeze({
+      boxFlex: 1,
+      boxFlexGroup: 1,
+      columnCount: 1,
+      fillOpacity: 1,
+      flex: 1,
+      flexGrow: 1,
+      flexNegative: 1,
+      flexPositive: 1,
+      flexShrink: 1,
+      fontWeight: 1,
+      lineClamp: 1,
+      lineHeight: 1,
+      opacity: 1,
+      order: 1,
+      orphans: 1,
+      strokeDashoffset: 1,
+      strokeOpacity: 1,
+      strokeWidth: 1,
+      tabSize: 1,
+      textStrokeWidth: 1,
+      widows: 1,
+      zIndex: 1,
+      zoom: 1,
+    });
 
-      pxToRem(rule);
-      expect(rule.padding).to.equal('2rem');
-      expect(rule.width).to.equal('18.75rem');
+    it('converts numbers to the associated rem amounts', () => {
+      let result = pxToRem({padding: 32, width: 300});
+
+      expect(result).to.have.property('padding', '2rem');
+      expect(result).to.have.property('width', '18.75rem');
     });
 
     it('does not convert strings to rem amounts', () => {
-      let rule = {padding: '32'};
-      pxToRem(rule);
-      expect(rule.padding).to.equal('32');
+      let result = pxToRem({padding: '32'});
+
+      expect(result).to.have.property('padding', '32');
     });
 
     it('does not change properties that should stay as pixel values', () => {
-      let rule = {...RULE_WITH_PX_PROPERTIES};
+      let result = pxToRem({...RULE_WITH_PX_PROPERTIES});
 
-      pxToRem(rule);
       Object.keys(RULE_WITH_PX_PROPERTIES).forEach((property) => {
-        expect(RULE_WITH_PX_PROPERTIES[property]).to.equal(rule[property]);
+        expect(result).to.have.property(property, RULE_WITH_PX_PROPERTIES[property]);
       });
+    });
+
+    it('does not change unitless numbers', () => {
+      let result = pxToRem({...RULE_WITH_UNITLESS_PROPERTIES});
+
+      Object.keys(RULE_WITH_UNITLESS_PROPERTIES).forEach((property) => {
+        expect(result).to.have.property(property, RULE_WITH_UNITLESS_PROPERTIES[property]);
+      });
+    });
+
+    it('does not change properties that need pixels but are 0', () => {
+      let result = pxToRem({padding: 0});
+      expect(result).to.have.property('padding', 0);
     });
 
     it('only applies to React DOM', () => {
       let rule = {padding: 32, width: 300};
       let ruleCopy = {...rule};
+      let result = pxToRem(rule, {React: {isDom: false}});
 
-      pxToRem(rule, {React: {isDom: false}});
-      expect(rule).to.deep.equal(ruleCopy);
+      expect(result).to.deep.equal(ruleCopy);
     });
 
     describe('.excluding', () => {
@@ -63,25 +100,32 @@ describe('plugins', () => {
       it('creates a plugin that excludes the specified properties', () => {
         let rule = {padding: 32, margin: 32};
         let ruleCopy = {...rule};
+        let result = customPxToRem(rule);
 
-        customPxToRem(rule);
-        Object.keys(ruleCopy).forEach((property) => {
+        Object.keys(result).forEach((property) => {
           expect(ruleCopy[property]).to.equal(rule[property]);
         });
       });
 
       it('still converts non-omitted properties', () => {
-        let rule = {width: 300};
-        customPxToRem(rule);
-        expect(rule).to.have.property('width', '18.75rem');
+        let result = customPxToRem({width: 300});
+
+        expect(result).to.have.property('width', '18.75rem');
       });
 
-      it('still omits pixel-required values', () => {
-        let rule = {...RULE_WITH_PX_PROPERTIES};
+      it('still does not change properties that should stay as pixel values', () => {
+        let result = pxToRem({...RULE_WITH_PX_PROPERTIES});
 
-        customPxToRem(rule);
         Object.keys(RULE_WITH_PX_PROPERTIES).forEach((property) => {
-          expect(RULE_WITH_PX_PROPERTIES[property]).to.equal(rule[property]);
+          expect(result).to.have.property(property, RULE_WITH_PX_PROPERTIES[property]);
+        });
+      });
+
+      it('still does not change unitless numbers', () => {
+        let result = pxToRem({...RULE_WITH_UNITLESS_PROPERTIES});
+
+        Object.keys(RULE_WITH_UNITLESS_PROPERTIES).forEach((property) => {
+          expect(result).to.have.property(property, RULE_WITH_UNITLESS_PROPERTIES[property]);
         });
       });
     });
