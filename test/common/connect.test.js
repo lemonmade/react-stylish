@@ -1,5 +1,8 @@
 import '../helper';
+
 import React from 'react';
+
+import {configure} from '../../src/common/config';
 import {createConnector} from '../../src/common/connect';
 import StyleSheet from '../../src/common/StyleSheet';
 
@@ -12,12 +15,12 @@ describe('connect', () => {
   let stylesheet = new StyleSheet();
 
   beforeEach(() => {
-    resolver = sinon.stub();
+    configure({React});
+    resolver = sinon.spy((element) => element);
     connect = createConnector(resolver);
     rendered = <div />;
 
-    class MyExample {
-      setState() {}
+    class MyExample extends React.Component {
       render() { return rendered; }
     }
 
@@ -80,6 +83,18 @@ describe('connect', () => {
       ConnectedExample = connect(stylesheet)(Example);
       expect(ConnectedExample.displayName).to.equal(displayName);
     });
+
+    it('copies the original class name if displayName does not exist', () => {
+      Example.displayName = '';
+      ConnectedExample = connect(stylesheet)(Example);
+      expect(ConnectedExample.displayName).to.equal(Example.name);
+    });
+
+    it('uses the name of a stateless component as its displayName', () => {
+      function StatelessComponent() {}
+      ConnectedExample = connect(stylesheet)(StatelessComponent);
+      expect(ConnectedExample.displayName).to.equal(StatelessComponent.name);
+    });
   });
 
   describe('#componentWillMount', () => {
@@ -135,9 +150,33 @@ describe('connect', () => {
     });
 
     it('returns the result of the resolve call', () => {
-      resolver.returns(rendered);
       ConnectedExample = connect(stylesheet)(Example);
       expect(new ConnectedExample().render()).to.equal(rendered);
+    });
+
+    describe('with stateless components', () => {
+      let StatelessComponent;
+
+      beforeEach(() => {
+        StatelessComponent = sinon.stub().returns(rendered);
+      });
+
+      it('wraps a stateless component in a class', () => {
+        ConnectedExample = connect(stylesheet)(StatelessComponent);
+        let result = new ConnectedExample().render();
+
+        expect(StatelessComponent).to.have.been.called;
+        expect(result).to.equal(rendered);
+      });
+
+      it('passes props and context to the stateless component', () => {
+        let props = {foo: true};
+        let context = {bar: true};
+        ConnectedExample = connect(stylesheet)(StatelessComponent);
+        new ConnectedExample(props, context).render();
+
+        expect(StatelessComponent).to.have.been.calledWith(props, context);
+      });
     });
   });
 });

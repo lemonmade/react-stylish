@@ -3,28 +3,32 @@ import config from './config';
 
 const IDENTIFIER_SPLITTER = /\s+/;
 
-export default function resolve(element, context, stylesheet, options = {}) {
-  options = {...config, ...options};
+let context = null;
+let stylesheet = null;
+let options = null;
+
+export default function resolve(element, theContext, theStylesheet, theOptions) {
+  context = theContext;
+  stylesheet = theStylesheet;
+
+  options = {...config, ...theOptions};
   options.visit = visitStrategy(options);
   options.variationMapping = (options.variationMapping && options.variationMapping(context)) || {};
-  options.level = 1;
 
-  return resolveElement(element, null, 0, context, stylesheet, options);
+  let result = resolveElement(element, null, 0, 1);
+
+  stylesheet = context = options = null;
+
+  return result;
 }
 
-function resolveElement(element, parent, index, context, stylesheet, options) {
-  let {React, level} = options;
-
-  if (_.isFunction(element)) {
-    return composedFunction(element, parent, index, context, stylesheet, options);
-  }
+function resolveElement(element, parent, index, level) {
+  let {React} = config;
 
   if (!element.props || !options.visit(element, level)) { return element; }
 
-  options.level += 1;
-  let newChildren = resolveChildren(element.props.children, element, context, stylesheet, options);
-  let newProps = resolveProps(element, parent, index, context, stylesheet, options);
-  options.level -= 1;
+  let newChildren = resolveChildren(element.props.children, element, level + 1);
+  let newProps = resolveProps(element, parent, index);
 
   if (
     newProps === element.props &&
@@ -38,15 +42,16 @@ function styleIsPresent(style) {
   return !((_.isArray(style) || _.isObject(style)) && _.isEmpty(style));
 }
 
-function resolveProps(element, parent, index, context, stylesheet, options) {
+function resolveProps(element, parent, index) {
   let {props} = element;
   let identifier = stylesheet.isSingleComponent ? 'root' : props[options.identifier];
   if (!identifier) { return props; }
 
   let identifiers = identifier.split(IDENTIFIER_SPLITTER);
-  let style = resolveStyles(element, parent, index, context, stylesheet, options);
+  let style = resolveStyles(element, parent, index);
 
-  let stylishState = (context.state && context.state.stylishState) || {};
+  let setState = ::context.setState;
+  let stylishState = (context.state && context.state._StylishState) || {};
   let augmentOptions = {
     React: config.React,
     stylishState,
@@ -56,7 +61,7 @@ function resolveProps(element, parent, index, context, stylesheet, options) {
     parent,
     index,
     setState(newState) {
-      context.setState({stylishState: {...stylishState, ...newState}});
+      setState({_StylishState: {...stylishState, ...newState}});
     },
   };
 
@@ -82,13 +87,13 @@ function resolveProps(element, parent, index, context, stylesheet, options) {
   return props;
 }
 
-function resolveStyles(element, parent, index, context, stylesheet, options) {
+function resolveStyles(element, parent, index) {
   let identifier = stylesheet.isSingleComponent ? 'root' : element.props[options.identifier];
-  let {state = {}, props = {}} = context;
+  let {state = {}, props} = context;
   let {variationMapping} = options;
   let resolveOptions = {
     React: config.React,
-    stylishState: state.stylishState || {},
+    stylishState: state._StylishState || {},
     context,
     element,
     stylesheet,
@@ -144,7 +149,6 @@ function resolveStyles(element, parent, index, context, stylesheet, options) {
 
 function resolveRules(rules, resolveOptions) {
   if (!rules) { return null; }
-  let {context} = resolveOptions;
 
   let pluginRules = config.plugins
     .filter((plugin) => Boolean(plugin.resolve))
@@ -155,36 +159,22 @@ function resolveRules(rules, resolveOptions) {
   });
 }
 
-function resolveChildren(children, parent, context, stylesheet, options) {
-  let {React, level} = options;
+function resolveChildren(children, parent, level) {
+  let {React} = options;
   let {Children, isValidElement} = React;
 
   if (!options.visit(children, level)) {
     return children;
   }
 
-  if (_.isFunction(children)) {
-    return composedFunction(children, parent, 0, context, stylesheet, options);
-  }
-
   if (Children.count(children) === 1 && children.type) {
-    return resolveElement(Children.only(children), parent, 0, context, stylesheet, options);
+    return resolveElement(Children.only(children), parent, 0, level);
   }
 
   return Children.map(children, (child, index) => {
     if (!isValidElement(child)) { return child; }
-    return resolveElement(child, parent, index, context, stylesheet, options);
+    return resolveElement(child, parent, index, level);
   });
-}
-
-function composedFunction(func, parent, index, context, stylesheet, options) {
-  return function() {
-    let {React} = options;
-    let element = func.apply(this, arguments);
-
-    if (!React.isValidElement(element)) { return element; }
-    return resolveElement(element, parent, index, context, stylesheet, {...options});
-  };
 }
 
 function visitStrategy({depth, React}) {
@@ -199,9 +189,8 @@ function visitStrategy({depth, React}) {
   return (element) => {
     if (!element) { return false; }
 
-    let isFunction = _.isFunction(element);
     let isArray = _.isArray(element);
     let isReact = React.isValidElement(element) && !React.isCustomComponent(element);
-    return isFunction || isArray || isReact;
+    return isArray || isReact;
   };
 }

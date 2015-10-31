@@ -15,8 +15,6 @@ describe('resolve', () => {
 
   class CustomComponent extends React.Component {
     static propTypes = {children: React.PropTypes.node};
-
-    constructor(props) { super(props); this.state = {}; }
     render() { return this.props.children; }
   }
 
@@ -29,10 +27,16 @@ describe('resolve', () => {
     return child;
   }
 
+  function createContext({props = {}, ...rest} = {}) {
+    context = new CustomComponent(props);
+    Object.keys(rest).forEach((key) => context[key] = rest[key]);
+    return context;
+  }
+
   beforeEach(() => {
     React.isCustomComponent = () => false;
     configure({React});
-    context = new CustomComponent({});
+    context = createContext();
 
     stylesheet = new StyleSheet({
       root: ruleOne,
@@ -66,30 +70,6 @@ describe('resolve', () => {
     result = resolve(<div><div styled="noStyles" /></div>, context, stylesheet);
     let nested = nestedChild(result);
     expect(nested.props.style).to.be.undefined;
-  });
-
-  it('allows function-wrapped elements to be stylized', () => {
-    result = resolve(() => { return <div styled="root"><div styled="nested" /></div>; }, context, stylesheet)();
-    let nested = nestedChild(result);
-
-    expect(result.props.style).to.deep.equal([ruleOne]);
-    expect(nested.props.style).to.deep.equal([ruleTwo]);
-  });
-
-  it('allows function-wrapped children elements to be stylized', () => {
-    class FunctionRenderer extends React.Component {
-      static propTypes = {children: React.PropTypes.func};
-      render() { return this.props.children(); }
-    }
-
-    result = resolve(<FunctionRenderer>{() => <div styled="nested" />}</FunctionRenderer>, context, stylesheet);
-    let nested = result.props.children();
-    expect(nested.props.style).to.deep.equal([ruleTwo]);
-  });
-
-  it('does not choke on function-wrapped elements that return a string', () => {
-    result = resolve(() => { return 'foo'; }, context, stylesheet)();
-    expect(result).to.equal('foo');
   });
 
   it('merges an already-present style on the element, with the existing style taking precedence', () => {
@@ -155,21 +135,21 @@ describe('resolve', () => {
       ['state', 'props'].forEach((attribute) => {
         it(`selects boolean variations when the ${attribute} value is true`, () => {
           addBooleanVariation();
-          context = {[attribute]: {[booleanVariation]: true}};
+          context = createContext({[attribute]: {[booleanVariation]: true}});
           result = resolve(rendered, context, stylesheet);
           expect(result.props.style).to.deep.equal([ruleOne]);
         });
 
         it(`selects boolean variations when the ${attribute} value is truthy`, () => {
           addBooleanVariation();
-          context = {[attribute]: {[booleanVariation]: 'foo'}};
+          context = createContext({[attribute]: {[booleanVariation]: 'foo'}});
           result = resolve(rendered, context, stylesheet);
           expect(result.props.style).to.deep.equal([ruleOne]);
         });
 
         it(`does not select boolean variations when the ${attribute} value is false`, () => {
           addBooleanVariation();
-          context = {[attribute]: {[booleanVariation]: false}};
+          context = createContext({[attribute]: {[booleanVariation]: false}});
           result = resolve(rendered, context, stylesheet);
           expect(result.props.style).to.be.undefined;
         });
@@ -177,14 +157,14 @@ describe('resolve', () => {
 
       it('uses a false state value over a true prop value', () => {
         addBooleanVariation();
-        context = {state: {[booleanVariation]: false}, props: {[booleanVariation]: true}};
+        context = createContext({state: {[booleanVariation]: false}, props: {[booleanVariation]: true}});
         result = resolve(rendered, context, stylesheet);
         expect(result.props.style).to.be.undefined;
       });
 
       it('uses a true state value over a false prop value', () => {
         addBooleanVariation();
-        context = {state: {[booleanVariation]: true}, props: {[booleanVariation]: false}};
+        context = createContext({state: {[booleanVariation]: true}, props: {[booleanVariation]: false}});
         result = resolve(rendered, context, stylesheet);
         expect(result.props.style).to.deep.equal([ruleOne]);
       });
@@ -192,7 +172,7 @@ describe('resolve', () => {
       it('calls function rules with the context and stores their result', () => {
         let functionRule = sinon.spy(() => ruleOne);
         addBooleanVariation(functionRule);
-        context = {props: {[booleanVariation]: true}};
+        context = createContext({props: {[booleanVariation]: true}});
         result = resolve(<div styled="root" />, context, stylesheet);
 
         expect(functionRule).to.have.been.calledWith(context);
@@ -203,7 +183,7 @@ describe('resolve', () => {
       it('does not do anything special with number rules', () => {
         const numberRule = 42;
         addBooleanVariation(numberRule);
-        context = {props: {[booleanVariation]: true}};
+        context = createContext({props: {[booleanVariation]: true}});
         result = resolve(<div styled="root" />, context, stylesheet);
         expect(result.props.style).to.deep.equal([numberRule]);
       });
@@ -232,14 +212,14 @@ describe('resolve', () => {
       ['state', 'props'].forEach((attribute) => {
         it(`selects enumerable variations when the ${attribute} value matches`, () => {
           addEnumerableVariation();
-          context = {[attribute]: {[enumerableVariation]: enumerableVariationValue}};
+          context = createContext({[attribute]: {[enumerableVariation]: enumerableVariationValue}});
           result = resolve(rendered, context, stylesheet);
           expect(result.props.style).to.deep.equal([ruleOne]);
         });
 
         it(`does not select enumerable variations when the ${attribute} value does not match`, () => {
           addEnumerableVariation();
-          context = {[attribute]: {[enumerableVariation]: 'foo'}};
+          context = createContext({[attribute]: {[enumerableVariation]: 'foo'}});
           result = resolve(rendered, context, stylesheet);
           expect(result.props.style).to.be.undefined;
         });
@@ -247,20 +227,20 @@ describe('resolve', () => {
 
       it('uses a matching state value over a non-matching prop value', () => {
         addEnumerableVariation();
-        context = {
+        context = createContext({
           state: {[enumerableVariation]: enumerableVariationValue},
           props: {[enumerableVariation]: 'foo'},
-        };
+        });
         result = resolve(rendered, context, stylesheet);
         expect(result.props.style).to.deep.equal([ruleOne]);
       });
 
       it('uses a non-matching state value over a matching prop value', () => {
         addEnumerableVariation();
-        context = {
+        context = createContext({
           state: {[enumerableVariation]: 'foo'},
           props: {[enumerableVariation]: enumerableVariationValue},
-        };
+        });
         result = resolve(rendered, context, stylesheet);
         expect(result.props.style).to.be.undefined;
       });
@@ -268,7 +248,7 @@ describe('resolve', () => {
       it('calls function rules with the context and stores their result', () => {
         let functionRule = sinon.spy(() => ruleOne);
         addEnumerableVariation(functionRule);
-        context = {props: {[enumerableVariation]: enumerableVariationValue}};
+        context = createContext({props: {[enumerableVariation]: enumerableVariationValue}});
         result = resolve(<div styled="root" />, context, stylesheet);
 
         expect(functionRule).to.have.been.calledWith(context);
@@ -280,7 +260,7 @@ describe('resolve', () => {
         // Can't add number variation rules directly for enumerable variations
         const numberRule = 42;
         addEnumerableVariation([numberRule]);
-        context = {props: {[enumerableVariation]: enumerableVariationValue}};
+        context = createContext({props: {[enumerableVariation]: enumerableVariationValue}});
         result = resolve(<div styled="root" />, context, stylesheet);
         expect(result.props.style).to.deep.equal([numberRule]);
       });
@@ -301,7 +281,7 @@ describe('resolve', () => {
     it('adds boolean variation styles', () => {
       let booleanVariation = 'primary';
       stylesheet.variation(booleanVariation, ruleTwo);
-      context = {props: {[booleanVariation]: true}};
+      context = createContext({props: {[booleanVariation]: true}});
       result = resolve(<div styled />, context, stylesheet);
 
       expect(result.props.style).to.deep.equal([ruleOne, ruleTwo]);
@@ -311,7 +291,7 @@ describe('resolve', () => {
       let enumerableVariation = 'size';
       let enumerableVariationValue = 'large';
       stylesheet.variation(enumerableVariation, {[enumerableVariationValue]: ruleTwo});
-      context = {props: {[enumerableVariation]: enumerableVariationValue}};
+      context = createContext({props: {[enumerableVariation]: enumerableVariationValue}});
       result = resolve(<div styled />, context, stylesheet);
 
       expect(result.props.style).to.deep.equal([ruleOne, ruleTwo]);
@@ -393,7 +373,7 @@ describe('resolve', () => {
       it('uses the variation mapper for resolving styles', () => {
         stylesheet = new StyleSheet();
         stylesheet.variation(variation, {root: ruleOne});
-        context = {state: {[variation]: false}};
+        context = createContext({state: {[variation]: false}});
         result = resolve(<div styled="root" />, context, stylesheet, {variationMapping: mapper});
 
         expect(result.props.style).to.deep.equal([ruleOne]);
@@ -403,7 +383,7 @@ describe('resolve', () => {
         stylesheet = new StyleSheet();
         mapper = sinon.spy(() => { return {foo: false}; });
         stylesheet.variation(variation, {root: ruleOne});
-        context = {state: {[variation]: true}};
+        context = createContext({state: {[variation]: true}});
         result = resolve(<div styled="root" />, context, stylesheet, {variationMapping: mapper});
 
         expect(result.props.style).to.deep.equal([ruleOne]);
@@ -445,7 +425,7 @@ describe('resolve', () => {
       let plugin = createPlugin();
       stylesheet = new StyleSheet();
       stylesheet.variation('primary', {root: ruleOne});
-      context = {props: {primary: true}};
+      context = createContext({props: {primary: true}});
 
       resolve(element, context, stylesheet);
 
@@ -477,7 +457,7 @@ describe('resolve', () => {
     it('calls the resolve plugins with the stylishState', () => {
       let plugin = createPlugin();
       let stylishState = {foo: true};
-      context = {state: {stylishState}};
+      context = createContext({state: {_StylishState: stylishState}});
 
       resolve(<div styled="root" />, context, stylesheet);
       let pluginOptions = plugin.resolve.lastCall.args[1];
@@ -525,13 +505,13 @@ describe('resolve', () => {
       let plugin = createPlugin();
       let setStateSpy = sinon.spy();
       let originalState = {foo: true};
-      context = {setState: setStateSpy, state: {stylishState: originalState}};
+      context = createContext({setState: setStateSpy, state: {_StylishState: originalState}});
       resolve(<div styled="root" />, context, stylesheet);
 
       let {setState} = plugin.augment.lastCall.args[1];
       let newState = {bar: true};
       setState(newState);
-      expect(setStateSpy).to.have.been.calledWith({stylishState: {foo: true, bar: true}});
+      expect(setStateSpy).to.have.been.calledWith({_StylishState: {foo: true, bar: true}});
     });
 
     it('merges new props added by the plugin', () => {
