@@ -5,6 +5,7 @@
     "browser": true
   },
   "rules": {
-    "shopify/require-flow": [2, "never"]
+    "shopify/require-flow": [2, "never"],
+    "react/sort-comp": 0,
   }
 }

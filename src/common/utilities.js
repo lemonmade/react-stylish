@@ -24,26 +24,35 @@ export function asArray(array) {
   return isArray(array) ? array : [array];
 }
 
-const KEYS_TO_IGNORE_WHEN_COPYING_PROPERTIES = [
-  'arguments',
-  'callee',
-  'caller',
-  'length',
-  'name',
-  'prototype',
-  'type',
-];
+const KNOWN_STATICS = {
+  name: true,
+  length: true,
+  prototype: true,
+  caller: true,
+  callee: true,
+  arguments: true,
+  arity: true,
+};
 
-export function copyPropertyDescriptors({from, to}) {
+const REACT_STATICS = {
+  childContextTypes: true,
+  contextTypes: true,
+  defaultProps: true,
+  displayName: true,
+  getDefaultProps: true,
+  mixins: true,
+  propTypes: true,
+  type: true,
+};
+
+export function hoistStatics({from, to}) {
   Object.getOwnPropertyNames(from).forEach((key) => {
-    if (
-      KEYS_TO_IGNORE_WHEN_COPYING_PROPERTIES.indexOf(key) < 0 &&
-      !to.hasOwnProperty(key)
-    ) {
-      let descriptor = Object.getOwnPropertyDescriptor(from, key);
-      Object.defineProperty(to, key, descriptor);
-    }
+    if (REACT_STATICS[key] || KNOWN_STATICS[key] || to.hasOwnProperty(key)) { return; }
+    let descriptor = Object.getOwnPropertyDescriptor(from, key);
+    Object.defineProperty(to, key, descriptor);
   });
+
+  return to;
 }
 
 const KEBAB_REGEX = /[\-\s]+(.)?/g;

@@ -60,8 +60,8 @@ describe('utilities', () => {
     });
   });
 
-  describe('copyPropertyDescriptors', () => {
-    let {copyPropertyDescriptors} = utils;
+  describe('hoistStatics', () => {
+    let {hoistStatics} = utils;
 
     it('copies property descriptors', () => {
       let foo = Object.create({}, {
@@ -83,7 +83,7 @@ describe('utilities', () => {
 
       let bar = {};
 
-      copyPropertyDescriptors({from: foo, to: bar});
+      hoistStatics({from: foo, to: bar});
 
       ['foo', 'bar', 'baz'].forEach((prop) => {
         let fooProp = Object.getOwnPropertyDescriptor(foo, prop);
@@ -104,7 +104,7 @@ describe('utilities', () => {
       };
 
       let bar = {};
-      copyPropertyDescriptors({from: foo, to: bar});
+      hoistStatics({from: foo, to: bar});
       expect(Object.keys(bar)).to.be.empty;
     });
   });
