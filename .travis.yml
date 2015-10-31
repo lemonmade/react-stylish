@@ -3,7 +3,6 @@ language: node_js
 node_js:
   - "4.1"
   - "4.0"
-script: npm run check
 after_success:
-  - npm run test:cover
-  - cat coverage/lcov.info | ./node_modules/.bin/coveralls
+  - "npm run test:cover"
+  - "cat coverage/lcov.info | ./node_modules/.bin/coveralls"
