@@ -34,7 +34,7 @@ describe('resolve', () => {
   }
 
   beforeEach(() => {
-    React.isCustomComponent = () => false;
+    sinon.stub(React, 'isCustomComponent').returns(false);
     configure({React});
     context = createContext();
 
@@ -42,6 +42,10 @@ describe('resolve', () => {
       root: ruleOne,
       nested: ruleTwo,
     });
+  });
+
+  afterEach(() => {
+    React.isCustomComponent.restore();
   });
 
   it('adds styles to the root element', () => {
@@ -311,7 +315,8 @@ describe('resolve', () => {
 
     describe('with depth', () => {
       beforeEach(() => {
-        React.isCustomComponent = (element) => element.type === CustomComponent;
+        React.isCustomComponent.restore();
+        sinon.stub(React, 'isCustomComponent', (element) => element.type === CustomComponent);
       });
 
       it('adds styles to non-custom-elements of any depth', () => {

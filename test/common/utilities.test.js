@@ -1,4 +1,5 @@
 import '../helper';
+
 import * as utils from '../../src/common/utilities';
 
 describe('utilities', () => {

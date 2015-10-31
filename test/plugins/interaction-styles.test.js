@@ -1,4 +1,5 @@
 import '../helper';
+
 import StyleSheet from '../../src/common/StyleSheet';
 import InteractionStylesPlugin from '../../src/plugins/interaction-styles';
 

@@ -1,6 +1,14 @@
 import '../helper';
 
-import React from '../../src/react/native';
+import ReactDOM from 'react';
+import proxyquire from 'proxyquire';
+
+const React = proxyquire('../../src/react/native', {
+  'react-native': {
+    ...ReactDOM,
+    '@noCallThru': true,
+  },
+});
 
 describe('Stylish Native', () => {
   describe('React', () => {

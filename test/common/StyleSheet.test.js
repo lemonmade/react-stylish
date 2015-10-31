@@ -1,4 +1,5 @@
 import '../helper';
+
 import StyleSheet from '../../src/common/StyleSheet';
 import config, {configure} from '../../src/common/config';
 

@@ -1,4 +1,5 @@
 import '../helper';
+
 import ReactStyleSheetPlugin from '../../src/plugins/react-stylesheet';
 
 describe('plugins', () => {

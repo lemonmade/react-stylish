@@ -1,4 +1,5 @@
 import '../helper';
+
 import {isArray} from '../../src/common/utilities';
 import PositionalStylesPlugin from '../../src/plugins/positional-styles';
 

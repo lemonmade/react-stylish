@@ -98,6 +98,14 @@ describe('connect', () => {
   });
 
   describe('#componentWillMount', () => {
+    beforeEach(() => {
+      sinon.stub(Example.prototype, 'setState');
+    });
+
+    afterEach(() => {
+      Example.prototype.setState.restore();
+    });
+
     it('calls the original componentWillMount if set', () => {
       let originalWillMount = Example.prototype.componentWillMount = sinon.spy();
       ConnectedExample = connect(stylesheet)(Example);
@@ -108,7 +116,6 @@ describe('connect', () => {
     });
 
     it('calls setState with some initial Stylish state', () => {
-      sinon.stub(Example.prototype, 'setState');
       let setState = Example.prototype.setState;
       ConnectedExample = connect(stylesheet)(Example);
 

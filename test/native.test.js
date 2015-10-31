@@ -1,7 +1,17 @@
 import './helper';
 
-import Stylish from '../src/native';
-import * as SeparateStylish from '../src/native';
+import React from '../src/react';
+import proxyquire from 'proxyquire';
+
+const SeparateStylish = proxyquire('../src/native', {
+  './react/native': {
+    ...React,
+    '@noCallThru': true,
+  },
+});
+
+const Stylish = SeparateStylish.default;
+
 import * as Plugins from '../src/plugins';
 
 describe('Stylish Native', () => {
