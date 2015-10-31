@@ -44,7 +44,7 @@
     "eslint-plugin-react": "^3.6.0",
     "eslint-plugin-shopify": "^2.0.0",
     "expect": "^1.11.1",
-    "istanbul": "^0.3.21",
+    "istanbul": "^0.4.0",
     "jsdom": "^7.0.2",
     "lodash": "^3.10.1",
     "mocha": "^2.3.3",
@@ -62,7 +62,7 @@
     "lodash.flatten": "^3.0.2",
     "lodash.isarray": "^3.0.4",
     "lodash.isempty": "^3.0.4",
-    "lodash.isfunction": "^2.4.1",
+    "lodash.isfunction": "^3.0.6",
     "lodash.isnumber": "^3.0.1",
     "lodash.isobject": "^3.0.2",
     "lodash.merge": "^3.3.2"
