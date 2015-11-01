@@ -35,7 +35,7 @@ const PositionalStylesPlugin = {
     let siblingCount = parent ? React.Children.count(parent.props.children) - 1 : 0;
 
     return POSITIONAL_STATES.filter((name) => {
-      return positionalStateMatches[name](index, siblingCount) && rules[name];
+      return rules[name] && positionalStateMatches[name](index, siblingCount);
     }).map((name) => {
       return rules[name];
     });

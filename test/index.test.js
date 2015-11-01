@@ -3,6 +3,7 @@ import './helper';
 import Stylish from '../src';
 import * as SeparateStylish from '../src';
 import * as Plugins from '../src/plugins';
+import createContainerQuery from '../src/plugins/container-queries/create';
 
 describe('Stylish DOM', () => {
   describe('exports', () => {
@@ -19,6 +20,13 @@ describe('Stylish DOM', () => {
     it('exports a configure function', () => {
       expect(Stylish.configure).to.be.a('function');
       expect(SeparateStylish.configure).to.equal(Stylish.configure);
+    });
+
+    it('exports a ContainerQueries utility', () => {
+      expect(Stylish.ContainerQueries).to.deep.equal({create: createContainerQuery});
+      expect(Stylish.CQ).to.deep.equal(Stylish.ContainerQueries);
+      expect(SeparateStylish.ContainerQueries).to.equal(Stylish.ContainerQueries);
+      expect(SeparateStylish.CQ).to.deep.equal(Stylish.ContainerQueries);
     });
 
     it('exports all plugins', () => {

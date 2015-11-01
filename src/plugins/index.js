@@ -8,6 +8,7 @@
 // - augment: Adds additional properties to nodes.
 // - attach: Manipulates the matching rules before they are attached to the component.
 
+import ContainerQueries from './container-queries';
 import InteractionStyles from './interaction-styles';
 import MergeRules from './merge-rules';
 import PositionalStyles from './positional-styles';
@@ -16,6 +17,7 @@ import ReactStyleSheet from './react-stylesheet';
 import VendorPrefix from './vendor-prefixes';
 
 export {
+  ContainerQueries,
   InteractionStyles,
   MergeRules,
   PositionalStyles,
