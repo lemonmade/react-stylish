@@ -15,6 +15,13 @@ describe('resolve', () => {
 
   class CustomComponent extends React.Component {
     static propTypes = {children: React.PropTypes.node};
+
+    stylishState = {};
+
+    setStylishState(newState) {
+      this.setState({_StylishState: {...this.stylishState, ...newState}});
+    }
+
     render() { return this.props.children; }
   }
 
@@ -462,7 +469,7 @@ describe('resolve', () => {
     it('calls the resolve plugins with the stylishState', () => {
       let plugin = createPlugin();
       let stylishState = {foo: true};
-      context = createContext({state: {_StylishState: stylishState}});
+      context = createContext({stylishState});
 
       resolve(<div styled="root" />, context, stylesheet);
       let pluginOptions = plugin.resolve.lastCall.args[1];
@@ -510,7 +517,7 @@ describe('resolve', () => {
       let plugin = createPlugin();
       let setStateSpy = sinon.spy();
       let originalState = {foo: true};
-      context = createContext({setState: setStateSpy, state: {_StylishState: originalState}});
+      context = createContext({setState: setStateSpy, stylishState: originalState});
       resolve(<div styled="root" />, context, stylesheet);
 
       let {setState} = plugin.augment.lastCall.args[1];

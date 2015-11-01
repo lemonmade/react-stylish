@@ -19,9 +19,18 @@ export function createConnector(resolver) {
 
       let {render, componentWillMount} = Component.prototype;
 
+      Component.prototype.setStylishState = function(newState) {
+        this.setState({_StylishState: {...this.stylishState, ...newState}});
+      };
+
+      Object.defineProperty(Component.prototype, 'stylishState', {
+        get() { return (this.state && this.state._StylishState) || {}; },
+        configurable: true,
+      });
+
       Component.prototype.componentWillMount = function() {
         if (componentWillMount) { componentWillMount.apply(this, arguments); }
-        this.setState({_StylishState: {}});
+        this.setStylishState({});
       };
 
       Component.prototype.render = function() {
@@ -31,7 +40,13 @@ export function createConnector(resolver) {
 
       Component.displayName = Component.displayName || Component.name;
 
-      return Component;
+      let decorateConfig = {stylesheet, React: config.React};
+
+      return config.plugins
+        .filter((plugin) => Boolean(plugin.decorate))
+        .reduce((DecoratedComponent, plugin) => {
+          return plugin.decorate(DecoratedComponent, decorateConfig);
+        }, Component);
     };
   };
 }

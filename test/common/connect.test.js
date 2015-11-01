@@ -2,7 +2,7 @@ import '../helper';
 
 import React from 'react';
 
-import {configure} from '../../src/common/config';
+import config, {configure} from '../../src/common/config';
 import {createConnector} from '../../src/common/connect';
 import StyleSheet from '../../src/common/StyleSheet';
 
@@ -97,6 +97,47 @@ describe('connect', () => {
     });
   });
 
+  describe('#stylishState', () => {
+    beforeEach(() => {
+      ConnectedExample = connect(stylesheet)(Example);
+    });
+
+    it('returns an empty object if no stylish state is set', () => {
+      expect(new ConnectedExample().stylishState).to.deep.equal({});
+    });
+
+    it('returns the stylish state', () => {
+      let example = new ConnectedExample();
+      let stylishState = {foo: 'bar'};
+      example.state = {_StylishState: stylishState};
+
+      expect(example.stylishState).to.deep.equal(stylishState);
+    });
+  });
+
+  describe('#setStylishState', () => {
+    const state = Object.freeze({foo: 'bar'});
+
+    beforeEach(() => {
+      sinon.stub(Example.prototype, 'setState');
+      ConnectedExample = connect(stylesheet)(Example);
+    });
+
+    it('sets the stylish state', () => {
+      new ConnectedExample().setStylishState(state);
+      expect(Example.prototype.setState).to.have.been.calledWith({_StylishState: state});
+    });
+
+    it('merges in existing stylish state', () => {
+      let originalState = {foo: 'qux', bar: 'baz'};
+      let example = new ConnectedExample();
+      example.state = {_StylishState: originalState};
+      example.setStylishState(state);
+
+      expect(Example.prototype.setState).to.have.been.calledWith({_StylishState: {...originalState, ...state}});
+    });
+  });
+
   describe('#componentWillMount', () => {
     beforeEach(() => {
       sinon.stub(Example.prototype, 'setState');
@@ -183,6 +224,32 @@ describe('connect', () => {
         new ConnectedExample(props, context).render();
 
         expect(StatelessComponent).to.have.been.calledWith(props, context);
+      });
+    });
+
+    describe('with decorate plugins', () => {
+      let pluginOne;
+      let pluginTwo;
+
+      beforeEach(() => {
+        pluginOne = {decorate: sinon.stub()};
+        pluginTwo = {decorate: sinon.stub()};
+        configure({plugins: [pluginOne, pluginTwo]});
+      });
+
+      it('calls all plugins with the correct arguments and returns the final result', () => {
+        class IntermediateExample {}
+        class FinalExample {}
+
+        pluginOne.decorate.returns(IntermediateExample);
+        pluginTwo.decorate.returns(FinalExample);
+
+        ConnectedExample = connect(stylesheet)(Example);
+        let decorateOptions = {stylesheet, React: config.React};
+
+        expect(pluginOne.decorate).to.have.been.calledWith(Example, decorateOptions);
+        expect(pluginTwo.decorate).to.have.been.calledWith(IntermediateExample, decorateOptions);
+        expect(ConnectedExample).to.equal(FinalExample);
       });
     });
   });

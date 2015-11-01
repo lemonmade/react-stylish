@@ -50,8 +50,7 @@ function resolveProps(element, parent, index) {
   let identifiers = identifier.split(IDENTIFIER_SPLITTER);
   let style = resolveStyles(element, parent, index);
 
-  let setState = ::context.setState;
-  let stylishState = (context.state && context.state._StylishState) || {};
+  let {stylishState} = context;
   let augmentOptions = {
     React: config.React,
     stylishState,
@@ -60,9 +59,7 @@ function resolveProps(element, parent, index) {
     stylesheet,
     parent,
     index,
-    setState(newState) {
-      setState({_StylishState: {...stylishState, ...newState}});
-    },
+    setState: ::context.setStylishState,
   };
 
   let newProps = config.plugins
@@ -93,7 +90,7 @@ function resolveStyles(element, parent, index) {
   let {variationMapping} = options;
   let resolveOptions = {
     React: config.React,
-    stylishState: state._StylishState || {},
+    stylishState: context.stylishState,
     context,
     element,
     stylesheet,
