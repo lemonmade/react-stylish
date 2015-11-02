@@ -6,7 +6,6 @@ configure({
   React,
   plugins: [
     Plugins.ReactStyleSheet,
-    Plugins.PositionalStyles,
   ],
 });
 
