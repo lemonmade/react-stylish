@@ -2,7 +2,7 @@
 
 An opinionated and extensible styling helper for React and React Native.
 
-[![Build status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![NPM version][npm-image]][npm-url] [![Dependency Status][dependency-image]][dependency-url] [![Dev Dependency Status][devDependency-image]][devDependency-url]
+[![Build status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Maintained][maintained-image]][maintained-url] [![NPM version][npm-image]][npm-url] [![Dependency Status][dependency-image]][dependency-url] [![Dev Dependency Status][devDependency-image]][devDependency-url] [![Code Climate][climate-image]][climate-url]
 
 ## Docs
 
@@ -109,6 +109,8 @@ Now, Stylish is not dictatorial in all respects. It provides many points at whic
 
 * Automatic vendor prefixing of properties that require it.
 
+* Supports declaration of [dynamic rules]() that are evaluated at render, so you can declare styles that use values from `props` or `state` alongside your "static" rules.
+
 * Positional rules (`first`, `last`, `even`, and `odd`), corresponding to the `:first-child`, `:last-child`, `:nth-child(even)`, and `:nth-child(odd)` pseudo-classes from CSS (you must [explicitly add this plugin]() as it is not enabled by default).
 
 * Automatic conversion of pixel (numeric) values to their corresponding `rem` values (you must [explicitly add this plugin]() as it is not enabled by default).
@@ -117,13 +119,23 @@ Now, Stylish is not dictatorial in all respects. It provides many points at whic
 
 [travis-url]: https://travis-ci.org/lemonmade/react-stylish
 [travis-image]: https://travis-ci.org/lemonmade/react-stylish.svg?branch=master
-[coveralls-image]: https://coveralls.io/repos/lemonmade/react-stylish/badge.svg?branch=master&service=github
+
 [coveralls-url]: https://coveralls.io/github/lemonmade/react-stylish?branch=master
-[dependency-image]: https://david-dm.org/lemonmade/react-stylish.svg
+[coveralls-image]: https://coveralls.io/repos/lemonmade/react-stylish/badge.svg?branch=master&service=github
+
 [dependency-url]: https://david-dm.org/lemonmade/react-stylish
-[devDependency-image]: https://david-dm.org/lemonmade/react-stylish.svg
+[dependency-image]: https://david-dm.org/lemonmade/react-stylish.svg
+
 [devDependency-url]: https://david-dm.org/lemonmade/react-stylish
+[devDependency-image]: https://david-dm.org/lemonmade/react-stylish.svg
+
 [npm-url]: https://npmjs.org/package/react-native-stylish
 [npm-image]: http://img.shields.io/npm/v/react-native-stylish.svg?style=flat-square
+
+[climate-url]: https://codeclimate.com/github/lemonmade/react-stylish
+[climate-image]: http://img.shields.io/codeclimate/github/lemonmade/react-stylish.svg?style=flat-square
+
+[maintained-url]: https://github.com/yannickcr/eslint-plugin-react/pulse
+[maintained-image]: http://img.shields.io/badge/status-maintained-brightgreen.svg?style=flat-square
 
 [docs]: https://github.com/lemonmade/Stylish/tree/master/docs
