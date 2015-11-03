@@ -4,7 +4,7 @@ import _ from 'lodash';
 import React from 'react';
 import TestUtils from 'react-addons-test-utils';
 
-import ContainerQueriesPlugin from '../../../src/plugins/container-queries';
+import ContainerQueriesPlugin, {createContainerQueriesPlugin} from '../../../src/plugins/container-queries';
 import createContainerQuery from '../../../src/plugins/container-queries/create';
 import StyleSheet from '../../../src/common/StyleSheet';
 
@@ -13,20 +13,33 @@ describe('Plugins', () => {
     const QUERY_KEY = createContainerQuery({min: 500});
     const component = 'button';
     const containerQueryRule = Object.freeze({backgroundColor: 'blue'});
+
     let stylesheet;
+    let Plugin;
+    let PluginWithoutDOM;
 
     beforeEach(() => {
       stylesheet = new StyleSheet();
-      ContainerQueriesPlugin.reset();
+      Plugin = createContainerQueriesPlugin({canUseDOM: true});
+      PluginWithoutDOM = createContainerQueriesPlugin({canUseDOM: false});
+    });
+
+    it('exports a plugin with the environment on load', () => {
+      expect(ContainerQueriesPlugin.reserve).to.be.a('function');
+      expect(ContainerQueriesPlugin.add).to.be.a('function');
+      expect(ContainerQueriesPlugin.resolve).to.be.a('function');
+      expect(ContainerQueriesPlugin.decorate).to.be.a('function');
     });
 
     describe('.reserve', () => {
       it('reserves a property starting with the prefix', () => {
-        expect(ContainerQueriesPlugin.reserve(QUERY_KEY, {})).to.be.true;
+        expect(Plugin.reserve(QUERY_KEY, {})).to.be.true;
+        expect(PluginWithoutDOM.reserve(QUERY_KEY, {})).to.be.true;
       });
 
       it('does not reserve other properties', () => {
-        expect(ContainerQueriesPlugin.reserve('backgroundColor', 'red')).to.be.false;
+        expect(Plugin.reserve('backgroundColor', 'red')).to.be.false;
+        expect(PluginWithoutDOM.reserve('backgroundColor', 'red')).to.be.false;
       });
     });
 
@@ -34,33 +47,45 @@ describe('Plugins', () => {
       it('extracts container query rules', () => {
         let regularRule = {backgroundColor: 'red'};
         let expected = {base: regularRule, [QUERY_KEY]: containerQueryRule};
-        let result = ContainerQueriesPlugin.add({...regularRule, [QUERY_KEY]: containerQueryRule}, {stylesheet, component});
+        let result = Plugin.add({...regularRule, [QUERY_KEY]: containerQueryRule}, {stylesheet, component});
+
+        expect(result).to.deep.equal(expected);
+      });
+
+      it('extracts container query rules even when there is no DOM', () => {
+        let regularRule = {backgroundColor: 'red'};
+        let expected = {base: regularRule, [QUERY_KEY]: containerQueryRule};
+        let result = PluginWithoutDOM.add({...regularRule, [QUERY_KEY]: containerQueryRule}, {stylesheet, component});
 
         expect(result).to.deep.equal(expected);
       });
     });
 
     describe('.resolve', () => {
+      it('does not have a resolve method when there is no DOM', () => {
+        expect(PluginWithoutDOM.resolve).to.be.undefined;
+      });
+
       it('adds a container query rule that is active', () => {
         let stylishState = {containerQueries: [QUERY_KEY]};
         let rules = {[QUERY_KEY]: containerQueryRule};
-        expect(ContainerQueriesPlugin.resolve(rules, {stylishState})).to.deep.equal([containerQueryRule]);
+        expect(Plugin.resolve(rules, {stylishState})).to.deep.equal([containerQueryRule]);
       });
 
       it('does not add a container query rule that is not active', () => {
         let stylishState = {containerQueries: []};
         let rules = {[QUERY_KEY]: containerQueryRule};
-        expect(ContainerQueriesPlugin.resolve(rules, {stylishState})).to.be.empty;
+        expect(Plugin.resolve(rules, {stylishState})).to.be.empty;
       });
 
       it('does not add a container a non-existent rule for an active query', () => {
         let stylishState = {containerQueries: [QUERY_KEY]};
         let rules = {};
-        expect(_.compact(ContainerQueriesPlugin.resolve(rules, {stylishState}))).to.be.empty;
+        expect(_.compact(Plugin.resolve(rules, {stylishState}))).to.be.empty;
       });
 
       it('does not choke when no relevant state is set', () => {
-        expect(ContainerQueriesPlugin.resolve({}, {stylishState: {}})).to.be.empty;
+        expect(Plugin.resolve({}, {stylishState: {}})).to.be.empty;
       });
     });
 
@@ -87,14 +112,18 @@ describe('Plugins', () => {
         };
       });
 
+      it('does not have a decorate method when there is no DOM', () => {
+        expect(PluginWithoutDOM.decorate).to.be.undefined;
+      });
+
       function decorateWithQueries() {
-        ContainerQueriesPlugin.add({[QUERY_KEY]: containerQueryRule}, {stylesheet});
-        return ContainerQueriesPlugin.decorate(Component, {stylesheet, React});
+        Plugin.add({[QUERY_KEY]: containerQueryRule}, {stylesheet});
+        return Plugin.decorate(Component, {stylesheet, React});
       }
 
       it('does not augment the class if there are no queries in the stylesheet', () => {
         let originalPrototype = {...Component.prototype};
-        DecoratedComponent = ContainerQueriesPlugin.decorate(Component, {stylesheet, React});
+        DecoratedComponent = Plugin.decorate(Component, {stylesheet, React});
         expect(DecoratedComponent.prototype).to.deep.equal(originalPrototype);
       });
 
@@ -196,9 +225,9 @@ describe('Plugins', () => {
 
         it('it includes container queries that match the current width', () => {
           const QUERY = createContainerQuery({min: WIDTH, max: WIDTH});
-          ContainerQueriesPlugin.reset();
-          ContainerQueriesPlugin.add({[QUERY]: containerQueryRule}, {stylesheet});
-          DecoratedComponent = ContainerQueriesPlugin.decorate(Component, {stylesheet, React});
+          Plugin = createContainerQueriesPlugin({canUseDOM: true});
+          Plugin.add({[QUERY]: containerQueryRule}, {stylesheet});
+          DecoratedComponent = Plugin.decorate(Component, {stylesheet, React});
 
           clientWidth.returns(WIDTH);
           new DecoratedComponent().handleStylishCQListenerResize();
@@ -208,9 +237,9 @@ describe('Plugins', () => {
 
         it('it does not include container queries that are smaller than the min', () => {
           const MIN_QUERY = createContainerQuery({min: WIDTH});
-          ContainerQueriesPlugin.reset();
-          ContainerQueriesPlugin.add({[MIN_QUERY]: containerQueryRule}, {stylesheet});
-          DecoratedComponent = ContainerQueriesPlugin.decorate(Component, {stylesheet, React});
+          Plugin = createContainerQueriesPlugin({canUseDOM: true});
+          Plugin.add({[MIN_QUERY]: containerQueryRule}, {stylesheet});
+          DecoratedComponent = Plugin.decorate(Component, {stylesheet, React});
 
           clientWidth.returns(WIDTH - 1);
           new DecoratedComponent().handleStylishCQListenerResize();
@@ -220,9 +249,9 @@ describe('Plugins', () => {
 
         it('it does not include container queries that are larger than the max', () => {
           let MAX_QUERY = createContainerQuery({max: WIDTH});
-          ContainerQueriesPlugin.reset();
-          ContainerQueriesPlugin.add({[MAX_QUERY]: containerQueryRule}, {stylesheet});
-          DecoratedComponent = ContainerQueriesPlugin.decorate(Component, {stylesheet, React});
+          Plugin = createContainerQueriesPlugin({canUseDOM: true});
+          Plugin.add({[MAX_QUERY]: containerQueryRule}, {stylesheet});
+          DecoratedComponent = Plugin.decorate(Component, {stylesheet, React});
 
           clientWidth.returns(WIDTH + 1);
           new DecoratedComponent().handleStylishCQListenerResize();

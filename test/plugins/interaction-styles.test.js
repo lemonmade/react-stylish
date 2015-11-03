@@ -1,37 +1,52 @@
 import '../helper';
 
 import StyleSheet from '../../src/common/StyleSheet';
-import InteractionStylesPlugin from '../../src/plugins/interaction-styles';
+import InteractionStylesPlugin, {createInteractionStylesPlugin} from '../../src/plugins/interaction-styles';
 
 describe('plugins', () => {
-  describe('InteractionStylesPlugin', () => {
+  describe('Plugin', () => {
     const INTERACTION_STATES = ['hover', 'focus', 'active'];
     const interactionRule = Object.freeze({background: 'gray'});
     const regularRule = Object.freeze({background: 'white'});
     const component = 'button';
     const stylesheet = new StyleSheet();
 
+    let PluginWithoutListeners;
+    let Plugin;
+
     beforeEach(() => {
-      InteractionStylesPlugin.reset();
+      Plugin = createInteractionStylesPlugin({canUseEventListeners: true});
+      PluginWithoutListeners = createInteractionStylesPlugin({canUseEventListeners: false});
+    });
+
+    it('exports a plugin with the environment on load', () => {
+      expect(InteractionStylesPlugin.reserve).to.be.a('function');
+      expect(InteractionStylesPlugin.add).to.be.a('function');
+      expect(InteractionStylesPlugin.resolve).to.be.a('function');
+      expect(InteractionStylesPlugin.augment).to.be.a('function');
     });
 
     describe('.reserve', () => {
       INTERACTION_STATES.forEach((state) => {
         it(`reserves '${state}' rules`, () => {
-          expect(InteractionStylesPlugin.reserve(state, interactionRule)).to.be.true;
+          expect(Plugin.reserve(state, interactionRule)).to.be.true;
+          expect(PluginWithoutListeners.reserve(state, interactionRule)).to.be.true;
         });
 
         it(`reserves ':${state}' rules in pseudo mode`, () => {
-          expect(InteractionStylesPlugin.reserve(`:${state}`, interactionRule, {pseudo: true})).to.be.true;
+          expect(Plugin.reserve(`:${state}`, interactionRule, {pseudo: true})).to.be.true;
+          expect(PluginWithoutListeners.reserve(`:${state}`, interactionRule, {pseudo: true})).to.be.true;
         });
 
         it(`does not reserve '${state}' rules in pseudo mode`, () => {
-          expect(InteractionStylesPlugin.reserve(state, interactionRule, {pseudo: true})).to.be.false;
+          expect(Plugin.reserve(state, interactionRule, {pseudo: true})).to.be.false;
+          expect(PluginWithoutListeners.reserve(state, interactionRule, {pseudo: true})).to.be.false;
         });
       });
 
       it('does not reserve other rules', () => {
-        expect(InteractionStylesPlugin.reserve('backgroundColor', 'red')).to.be.false;
+        expect(Plugin.reserve('backgroundColor', 'red')).to.be.false;
+        expect(PluginWithoutListeners.reserve('backgroundColor', 'red')).to.be.false;
       });
     });
 
@@ -40,7 +55,7 @@ describe('plugins', () => {
         it(`extracts '${state}' rules`, () => {
           let rule = {...regularRule, [state]: interactionRule};
           let expected = {base: regularRule, [state]: interactionRule};
-          let result = InteractionStylesPlugin.add(rule, {stylesheet, component});
+          let result = Plugin.add(rule, {stylesheet, component});
 
           expect(result).to.deep.equal(expected);
         });
@@ -48,7 +63,23 @@ describe('plugins', () => {
         it(`extracts ':${state}' rules in pseudo mode`, () => {
           let rule = {...regularRule, [`:${state}`]: interactionRule};
           let expected = {base: regularRule, [state]: interactionRule};
-          let result = InteractionStylesPlugin.add(rule, {stylesheet, component, pseudo: true});
+          let result = Plugin.add(rule, {stylesheet, component, pseudo: true});
+
+          expect(result).to.deep.equal(expected);
+        });
+
+        it(`extracts '${state}' rules even without event listeners`, () => {
+          let rule = {...regularRule, [state]: interactionRule};
+          let expected = {base: regularRule, [state]: interactionRule};
+          let result = PluginWithoutListeners.add(rule, {stylesheet, component});
+
+          expect(result).to.deep.equal(expected);
+        });
+
+        it(`extracts ':${state}' rules in pseudo mode even without event listeners`, () => {
+          let rule = {...regularRule, [`:${state}`]: interactionRule};
+          let expected = {base: regularRule, [state]: interactionRule};
+          let result = PluginWithoutListeners.add(rule, {stylesheet, component, pseudo: true});
 
           expect(result).to.deep.equal(expected);
         });
@@ -60,12 +91,16 @@ describe('plugins', () => {
       let rules;
 
       function resolve(theRules, options = {stylishState, component}) {
-        return InteractionStylesPlugin.resolve(theRules, options);
+        return Plugin.resolve(theRules, options);
       }
 
       beforeEach(() => {
         stylishState = {interactions: {hover: {}, focus: {}, active: {}}};
         rules = {base: []};
+      });
+
+      it('does not have a resolve method if there are no event listeners', () => {
+        expect(PluginWithoutListeners.resolve).to.be.undefined;
       });
 
       it('does not throw an error when no state has previously been set', () => {
@@ -133,12 +168,16 @@ describe('plugins', () => {
       let stylishState;
 
       function augment(oldProps = {}) {
-        return InteractionStylesPlugin.augment(oldProps, {stylishState, setState, component, stylesheet});
+        return Plugin.augment(oldProps, {stylishState, setState, component, stylesheet});
       }
 
       beforeEach(() => {
         setState = sinon.spy();
         stylishState = {interactions: {hover: {}, focus: {}, active: {}}};
+      });
+
+      it('does not have a augment method if there are no event listeners', () => {
+        expect(PluginWithoutListeners.augment).to.be.undefined;
       });
 
       it('does not throw an error when no state has previously been set', () => {
@@ -147,13 +186,12 @@ describe('plugins', () => {
       });
 
       it('does not add any listeners by default', () => {
-        InteractionStylesPlugin.reset();
         expect(augment()).to.deep.equal({});
       });
 
       it('adds listeners for multiple interaction styles', () => {
-        InteractionStylesPlugin.add({focus: interactionRule}, {stylesheet, component});
-        InteractionStylesPlugin.add({hover: interactionRule}, {stylesheet, component});
+        Plugin.add({focus: interactionRule}, {stylesheet, component});
+        Plugin.add({hover: interactionRule}, {stylesheet, component});
 
         let props = augment();
         expect(props.onFocus).to.be.a('function');
@@ -164,7 +202,7 @@ describe('plugins', () => {
 
       describe('with hover', () => {
         beforeEach(() => {
-          InteractionStylesPlugin.add({hover: interactionRule}, {stylesheet, component});
+          Plugin.add({hover: interactionRule}, {stylesheet, component});
         });
 
         it('adds an onMouseEnter listener', () => {
@@ -211,7 +249,7 @@ describe('plugins', () => {
         });
 
         it('does not add listeners when there is no hover', () => {
-          InteractionStylesPlugin.reset();
+          Plugin = createInteractionStylesPlugin({canUseEventListeners: true});
           let props = augment();
           expect(props.onMouseEnter).to.be.undefined;
           expect(props.onMouseLeave).to.be.undefined;
@@ -220,7 +258,7 @@ describe('plugins', () => {
 
       describe('with focus', () => {
         beforeEach(() => {
-          InteractionStylesPlugin.add({focus: interactionRule}, {stylesheet, component});
+          Plugin.add({focus: interactionRule}, {stylesheet, component});
         });
 
         it('adds an onFocus listener', () => {
@@ -266,7 +304,7 @@ describe('plugins', () => {
         });
 
         it('does not add listeners when there is no focus', () => {
-          InteractionStylesPlugin.reset();
+          Plugin = createInteractionStylesPlugin({canUseEventListeners: true});
           let props = augment();
           expect(props.onFocus).to.be.undefined;
           expect(props.onBlur).to.be.undefined;
@@ -275,7 +313,7 @@ describe('plugins', () => {
 
       describe('with active', () => {
         beforeEach(() => {
-          InteractionStylesPlugin.add({active: interactionRule}, {stylesheet, component});
+          Plugin.add({active: interactionRule}, {stylesheet, component});
         });
 
         it('adds an onKeyDown listener', () => {

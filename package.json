@@ -7,7 +7,7 @@
   "jsnext:main": "src/index.js",
   "scripts": {
     "clean": "$(npm bin)/rimraf lib dist coverage",
-    "lint": "$(npm bin)/eslint .",
+    "lint": "$(npm bin)/eslint . --max-warnings 0",
     "test": "$(npm bin)/mocha test/ --recursive --compilers js:babel/register --reporter spec",
     "test:cover": "babel-node $(npm bin)/isparta cover --reporter text --reporter html $(npm bin)/_mocha test/ -- --recursive --reporter spec",
     "test:watch": "npm test -- --watch --reporter min",
