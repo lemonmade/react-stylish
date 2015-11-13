@@ -1,0 +1,6 @@
+{
+  "extends": "shopify/react",
+  "rules": {
+    "shopify/require-flow": [2, "never"]
+  }
+}

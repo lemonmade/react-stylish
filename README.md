@@ -4,9 +4,17 @@ An opinionated and extensible styling helper for React and React Native.
 
 [![Build status][travis-image]][travis-url] [![Coverage Status][coveralls-image]][coveralls-url] [![Maintained][maintained-image]][maintained-url] [![NPM version][npm-image]][npm-url] [![Dependency Status][dependency-image]][dependency-url] [![Dev Dependency Status][devDependency-image]][devDependency-url] [![Code Climate][climate-image]][climate-url]
 
+## Installation
+
+```bash
+npm install react-stylish
+```
+
+Note that this generates a [UMD build][umd-url] of Stylish available at `react-stylish/dist/stylish.js` (or `react-stylish/dist/stylish.min.js` for the minified build). Where possible, try to avoid using this build and, instead, follow the usage instructions detailed below.
+
 ## Docs
 
-Coming soon.
+Need help? Check out the [docs][docs] directory for advanced usage information.
 
 ## Usage
 
@@ -79,8 +87,6 @@ class Greeting extends React.Component {
 }
 ```
 
-Advanced details on the usage of Stylish are available in the [docs][docs].
-
 ### React Native
 
 Stylish is fully compatible with React Native. In fact, the `create` API is almost entirely compatible with React Native's `StyleSheet.create`. Stylish will automatically pass your rules to `StyleSheet.create` to prevent sending a new style object every time and, just like `StyleSheet.create`, the object returned from creating a Stylish stylesheet has the "base" rules as keys (for example, the above example would have `styles.container` and `styles.heading` with just the basic rules included).
@@ -138,4 +144,5 @@ Now, Stylish is not dictatorial in all respects. It provides many points at whic
 [maintained-url]: https://github.com/yannickcr/eslint-plugin-react/pulse
 [maintained-image]: http://img.shields.io/badge/status-maintained-brightgreen.svg?style=flat-square
 
+[umd-url]: https://github.com/umdjs/umd
 [docs]: https://github.com/lemonmade/Stylish/tree/master/docs
