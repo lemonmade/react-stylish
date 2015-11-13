@@ -14,7 +14,7 @@ Note that this generates a [UMD build][umd-url] of Stylish available at `react-s
 
 ## Docs
 
-Need help? Check out the [docs][docs] directory for advanced usage information.
+Need help? Check out the [docs][docs-url] directory for advanced usage information.
 
 ## Usage
 
@@ -53,7 +53,7 @@ styles.variations({
   },
 
   type: {
-    // Only applied when `props.condensed` or `state.condensed` are `'condensed'`
+    // Only applied when `props.type` or `state.type` are `'condensed'`
     condensed: {
       container: {
         padding: 10,
@@ -105,23 +105,25 @@ Note, too, that many of the plugins enabled by default in Stylish for React DOM 
 
 Stylish is opinionated in how you should apply your styles. Most obviously, it completely eschews CSS; styles can only be written in JavaScript. In my opinion, this gives you the same benefits as the collocation of markup and logic that makes React such a pleasure to use.
 
-The API enforces that you declare "base" styles (that are always applied) and, optionally, "variation" styles (which are applied **only** when there is a matching `prop` or `state` value, or you provide a value for it via the [`variationMapping` option]()). I believe this to be the correct way to apply styles — any variations you want users to be able to perform should be exposed as `props`, and your component can then resolve those `props` into the necessary styles internally.
+The API enforces that you declare "base" styles (that are always applied) and, optionally, "variation" styles (which are applied **only** when there is a matching `prop` or `state` value, or you provide a value for it via the [`variationMapping` option][variation-mapping-url]). I believe this to be the correct way to apply styles — any variations you want users to be able to perform should be exposed as `props`, and your component can then resolve those `props` into the necessary styles internally.
 
-Now, Stylish is not dictatorial in all respects. It provides many points at which [Plugins]() can manipulate what styles are created and attached, and offers many handy features by default:
+Now, Stylish is not dictatorial in all respects. It provides many points at which [Plugins][plugins-url] can manipulate what styles are created and attached, and offers many handy features by default:
 
-* Container queries for building *truly* responsive designs. See the example above for an example of declaring container queries in your styles.
+- Container queries for building *truly* responsive designs. See the example above for an example of declaring container queries in your styles.
 
-* Interaction rules (`hover`, `focus`, and `active`), corresponding to the `:hover`, `:focus`, and `:active` pseudo-classes from CSS (no more setting state on your own!).
+- Interaction rules (`hover`, `focus`, and `active`), corresponding to the `:hover`, `:focus`, and `:active` pseudo-classes from CSS (no more setting state on your own!).
 
-* Automatic vendor prefixing of properties that require it.
+- Automatic vendor prefixing of properties that require it.
 
-* Supports declaration of [dynamic rules]() that are evaluated at render, so you can declare styles that use values from `props` or `state` alongside your "static" rules.
+- Supports declaration of [dynamic rules][dynamic-rules-url] that are evaluated at render, so you can declare styles that use values from `props` or `state` alongside your "static" rules.
 
-* Positional rules (`first`, `last`, `even`, and `odd`), corresponding to the `:first-child`, `:last-child`, `:nth-child(even)`, and `:nth-child(odd)` pseudo-classes from CSS (you must [explicitly add this plugin]() as it is not enabled by default).
+- Positional rules (`first`, `last`, `even`, and `odd`), corresponding to the `:first-child`, `:last-child`, `:nth-child(even)`, and `:nth-child(odd)` pseudo-classes from CSS (you must [explicitly add this plugin][enable-plugins-url] as it is not enabled by default).
 
-* Automatic conversion of pixel (numeric) values to their corresponding `rem` values (you must [explicitly add this plugin]() as it is not enabled by default).
+- Automatic conversion of pixel (numeric) values to their corresponding `rem` values (you must [explicitly add this plugin][enable-plugins-url] as it is not enabled by default).
 
-* Support for ES6 class components and React 0.14 stateless components.
+- Support for ES6 class components and React 0.14 stateless components.
+
+
 
 [travis-url]: https://travis-ci.org/lemonmade/react-stylish
 [travis-image]: https://travis-ci.org/lemonmade/react-stylish.svg?branch=master
@@ -145,4 +147,8 @@ Now, Stylish is not dictatorial in all respects. It provides many points at whic
 [maintained-image]: http://img.shields.io/badge/status-maintained-brightgreen.svg?style=flat-square
 
 [umd-url]: https://github.com/umdjs/umd
-[docs]: https://github.com/lemonmade/Stylish/tree/master/docs
+[docs-url]: https://github.com/lemonmade/react-stylish/tree/master/docs
+[plugins-url]: https://github.com/lemonmade/react-stylish/tree/master/docs/plugins.md
+[variation-mapping-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/connect.md#variationmapping
+[dynamic-rules-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/create.md#function-rules
+[enable-plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#enabling-plugins

@@ -4,7 +4,7 @@ Plugins can hook into a number of steps in the creation and resolution of styles
 
 ## Enabling Plugins
 
-A selection of plugins that make sense are enabled by default in both the React DOM and Native versions of Stylish. You can, however, completely replace the default plugins by calling Stylish's [`configure` function]() with the `plugins` key set to an array of plugins you wish to enable (all bundled plugins detailed below are available on `Stylish.Plugins`):
+A selection of plugins that make sense are enabled by default in both the React DOM and Native versions of Stylish. You can, however, completely replace the default plugins by calling Stylish's [`configure` function][configure-url] with the `plugins` key set to an array of plugins you wish to enable (all bundled plugins detailed below are available on `Stylish.Plugins`):
 
 ```javascript
 import Stylish from 'react-stylish';
@@ -80,7 +80,7 @@ For those interested, these rules work by storing some small set of state on you
 
 ### `PositionalStyles`
 
-Not enabled by default in React DOM or Native. However, it will work for both [if enabled]().
+Not enabled by default in React DOM or Native. However, it will work for both [if enabled][enable-plugins-url].
 
 The `PositionalStyles` plugin lets you style elements based on their position within their parent. It provides `first`, `last`, `even`, and `odd` keys to use to target elements whose position within its parent matches that positional description. For example, rules you pass to `first` will only apply to an instance of the subcomponent that is the first child in its parent, and `even` will only apply those rules to every second element. Here's an example using a few of these keys:
 
@@ -113,7 +113,7 @@ As with the `InteractionStyles` plugin, you can enable "pseudo mode" to force `:
 
 ### `PxToRem`
 
-Not enabled by default in React DOM or Native. However, it will work for React DOM [if enabled]().
+Not enabled by default in React DOM or Native. However, it will work for React DOM [if enabled][enable-plugins-url].
 
 The `PxToRem` plugin does exactly what it says on the tin: this plugin will convert straight numeric values (assumed to be in pixels) into the equivalent `rem` values. Here's an example:
 
@@ -153,7 +153,7 @@ let styles = Stylish.create({
 });
 ```
 
-### VendorPrefixes
+### `VendorPrefixes`
 
 Enabled by default for React DOM. It does not work with the React Native version.
 
@@ -176,7 +176,7 @@ let styles = Stylish.create({
 });
 ```
 
-### ContainerQueries
+### `ContainerQueries`
 
 Enabled by default for React DOM. It does not work with the React Native version.
 
@@ -184,7 +184,7 @@ The `ContainerQueries` plugin allows you to define simple, width-based container
 
 It does this by adding an `object` element, absolutely positioned on a wrapper around your component, which detects resizes in the component and updates a bit of state attached to your component. Note that this implementation has the following side effects/ drawbacks; the wrapper around your component is a `block`-level element that exactly wraps your component, and that has `relative` positioning. This may have implications for such things as positioning of interior elements (if you depend on a node higher in the tree being the relatively-positioned parent) and flexbox (if your component depends on being inside a flex container). There can also be issues if your container queries' rules cause the width of the component to change.
 
-If these restrictions do not affect your component (which they won't in most cases), you can include a container query by using the result of `Stylish.ContainerQueries.create` (or `Stylish.CQ.create`) as the key for rules you would like to apply conditional upon that query matching. The `create` function accepts an object with a `min` and/ or `max` property (or `min` and `max` positional arguments). As illustrated in the example below, this is much easier when you use ES2015's [computed parameters]().
+If these restrictions do not affect your component (which they won't in most cases), you can include a container query by using the result of `Stylish.ContainerQueries.create` (or `Stylish.CQ.create`) as the key for rules you would like to apply conditional upon that query matching. The `create` function accepts an object with a `min` and/ or `max` property (or `min` and `max` positional arguments). As illustrated in the example below, this is much easier when you use ES2015's [computed properties][computed-properties-url].
 
 ```javascript
 let styles = Stylish.create({
@@ -226,13 +226,13 @@ let styles = Stylish.create({
 });
 ```
 
-### MergeRules
+### `MergeRules`
 
 Enabled by default for React DOM (it is, in fact, mandatory to use this plugin with React DOM). It does work with React Native, but should not be used as React Native styles are cached as numbers using `React.StyleSheet.create` where possible.
 
 The `MergeRules` plugin combines the array of rules (objects) that Stylish's resolution steps generate into a single object, which the `style` attribute in React DOM expects.
 
-### ReactStyleSheet
+### `ReactStyleSheet`
 
 Enabled by default for React Native. It does not work with the React DOM version.
 
@@ -240,7 +240,7 @@ The `ReactStyleSheet` plugin sends static rules through React Native's `StyleShe
 
 ## Writing Your Own
 
-Plugins are simply objects with methods whose names correspond to one or more of the hooks described below. Each hook has unique information provided to the component that make sense at that stage. Many plugins will use multiple hooks to function correctly; for example, the `InteractionStyles` plugin hooks into the `reserve` and `add` hooks (to access and extract interaction-related rules) and the `resolve` and `augment` hooks (to choose appropriate styles and add the necessary event handlers). See the [bundled plugins]() for informative examples of all of these hooks.
+Plugins are simply objects with methods whose names correspond to one or more of the hooks described below. Each hook has unique information provided to the component that make sense at that stage. Many plugins will use multiple hooks to function correctly; for example, the `InteractionStyles` plugin hooks into the `reserve` and `add` hooks (to access and extract interaction-related rules) and the `resolve` and `augment` hooks (to choose appropriate styles and add the necessary event handlers). See the [bundled plugins][bundled-plugins-url] for informative examples of all of these hooks.
 
 Note that this is the area of Stylish I am least satisfied with, so the exact hooks and associated arguments are subject to change.
 
@@ -250,7 +250,7 @@ There are three hooks that are used when new rules are created via `Stylish.crea
 
 #### `reserve`
 
-Use the `reserve` hook to indicate whether a particular key in a rule is reserved for use by your plugin. For example, the `InteractionStyles` plugin reserves `hover`, `focus`, and `active` (or `:hover`, `:focus`, and `:active` if the configuration is set to use [pseudo mode]()).
+Use the `reserve` hook to indicate whether a particular key in a rule is reserved for use by your plugin. For example, the `InteractionStyles` plugin reserves `hover`, `focus`, and `active` (or `:hover`, `:focus`, and `:active` if the configuration is set to use [pseudo mode][pseudo-mode-url]).
 
 The `reserve` hook is passed two arguments: the `key` to consider, and the `value` of that key as specified by the user. In general, any key that you extract as part of the `add` hook should be marked as `reserved` (this allows Stylish to determine such things as whether a variation is boolean or enumerable, and whether a style object represents a single component).
 
@@ -427,3 +427,11 @@ let MyPlugin = {
   },
 };
 ```
+
+
+
+[configure-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/configure.md
+[enable-plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#enabling-plugins
+[computed-properties-url]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Computed_property_names
+[bundled-plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#bundled-plugins
+[pseudo-mode-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/configure.md

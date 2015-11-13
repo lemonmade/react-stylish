@@ -22,7 +22,7 @@ let styles = Stylish.create({
 
 Note that, unlike in CSS, rule names are written in camelcase (you can still use the CSS version of the property, but you would need to wrap each key in quotes).
 
-The object you get back from this function is what you [connect]() to your components. You can also chain it with calls to `variation` or `variations` to add rules that apply only if some `props`/ `state` in your component match the conditions you set, as described below.
+The object you get back from this function is what you [connect][connect-url] to your components. You can also chain it with calls to `variation` or `variations` to add rules that apply only if some `props`/ `state` in your component match the conditions you set, as described below.
 
 ## Variations
 
@@ -210,7 +210,7 @@ let allTheStyles = Stylish.create({
 
 ## Plugin Rules
 
-Some [plugins]() allow you to include extra, conditional rules inline with your regular rules. For example, the [interaction styles]() plugin lets you include rules inside `hover`, `focus`, and `active` styles inline with your regular rules:
+Some [plugins][plugins-url] allow you to include extra, conditional rules inline with your regular rules. For example, the [`InteractionStyles` plugin][interaction-styles-plugin-url] lets you include rules inside `hover`, `focus`, and `active` styles inline with your regular rules:
 
 ```javascript
 let styles = Stylish.create({
@@ -244,7 +244,7 @@ styles.variations({
 })
 ```
 
-For details on what plugins are available and what "custom" rules they enable, see the [list of all built-in plugins]().
+For details on what plugins are available and what "custom" rules they enable, see the [list of all built-in plugins][bundled-plugins-url].
 
 ## Single Subcomponents
 
@@ -271,3 +271,10 @@ buttonStyles.variations({
   }
 })
 ```
+
+
+
+[connect-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/connect.md
+[plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md
+[interaction-styles-plugin-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#interactionstyles
+[bundled-plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#bundled-plugins

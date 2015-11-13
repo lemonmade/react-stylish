@@ -8,7 +8,7 @@ Stylish allows you to configure certain options globally using `Stylish.configur
 
 - `pseudo` (`boolean`, defaults to `false`): whether or not "pseudo mode" is enabled. Many plugins will look for `:`-prefixed keys, instead of the default string keys, if pseudo mode is enabled (for example, you would use `:hover` instead of `hover` for those rules).
 
-- `plugins` (`[Plugin]`, default depends on whether you are using React DOM or React Native): all plugins that will be run (across all [plugin hooks]()). Note that if you wish to add to the default plugins, rather than fully overwriting them, you can use `addPlugins`, detailed below.
+- `plugins` (`[Plugin]`, default depends on whether you are using React DOM or React Native): all plugins that will be run (across all [plugin hooks][create-plugins-url]). Note that if you wish to add to the default plugins, rather than fully overwriting them, you can use `addPlugins`, detailed below.
 
 ## `Stylish.configure.addPlugins`
 
@@ -18,3 +18,7 @@ If you wish to add additional plugins (for example, custom ones you wrote), you 
 import {configure} from 'react-stylish';
 configure.addPlugins(MyCustomPlugin, MyOtherPlugin);
 ```
+
+
+
+[create-plugins-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/plugins.md#writing-your-own

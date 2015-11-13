@@ -1,6 +1,6 @@
 # `Stylish.connect`
 
-After you've [created]() your styles, you'll need to connect it to components in order for it to apply. You can do so using the `Stylish.connect`:
+After you've [created][create-styles-url] your styles, you'll need to connect it to components in order for it to apply. You can do so using the `Stylish.connect`:
 
 ```javascript
 import Stylish from 'react-stylish'; // or, react-stylish/native if doing React Native!
@@ -10,7 +10,7 @@ class MyComponent extends React.Component {}
 MyComponent = Stylish.connect(styles)(MyComponent)
 ```
 
-`Stylish.connect` takes a style object and an options object (described below), and returns a function to which you pass your actual component. Because of the structure of this application, you can use it as an [ES2016 decorator]():
+`Stylish.connect` takes a style object and an options object (described below), and returns a function to which you pass your actual component. Because of the structure of this application, you can use it as an [ES2016 decorator][es6-decorator-url]:
 
 ```javascript
 let styles = Stylish.create();
@@ -19,17 +19,11 @@ let styles = Stylish.create();
 class MyComponent extends React.Component {}
 ```
 
-The second (optional) argument to `Stylish.connect` is an options object. It allows you to specify how styles are actually applied in a number of ways, each of which is described below:
-
-- [`identifier`]()
-
-- [`depth`]()
-
-- [`variationMapping`]()
+The second (optional) argument to `Stylish.connect` is an options object. It allows you to specify how styles are actually applied in a number of ways, each of which is described below.
 
 ## `identifier`
 
-The `identifier` is the `prop` that Stylish will look for to determine what subcomponent a given node is (and, therefore, what styles should apply to it). By default, Stylish looks for a `styled` property on nodes to associate them with the subcomponents you declared while [creating your styles]():
+The `identifier` is the `prop` that Stylish will look for to determine what subcomponent a given node is (and, therefore, what styles should apply to it). By default, Stylish looks for a `styled` property on nodes to associate them with the subcomponents you declared while [creating your styles][create-styles-url]:
 
 ```javascript
 @Stylish.connect(styles)
@@ -61,7 +55,7 @@ class MyComponent extends React.Component {
 }
 ```
 
-If your style object encapsulates a [single component]() (rather than having multiple subcomponents), you can use a blank identifier to signal that a particular node is the one that should get any applicable rules:
+If your style object encapsulates a [single component][single-component-url] (rather than having multiple subcomponents), you can use a blank identifier to signal that a particular node is the one that should get any applicable rules:
 
 ```javascript
 @Stylish.connect(styles)
@@ -158,7 +152,7 @@ class MyComponent extends React.Component {
 
 ## `variationMapping`
 
-As noted in the explanation of [creating variations](), variation styles are automatically added when a matching `props` or `state` value is found in the component. You may find that you want to have a variation name that does not match any `props` or `state` value, but may be computed from them.
+As noted in the explanation of [creating variations][create-variation-url], variation styles are automatically added when a matching `props` or `state` value is found in the component. You may find that you want to have a variation name that does not match any `props` or `state` value, but may be computed from them.
 
 The `variationMapping` argument lets you specify a function. This function must return an object whose keys are the names of your variations and the values are the values to use in checking whether a variation should be applied or not. This object will be the first step in checking what a variation's value is; if no variation is found in the mapping, Stylish will fall back to the `state` value, then the `props` value.
 
@@ -209,3 +203,10 @@ In the example above, there are three variations:
 - The `destructive` variation's value will be treated as `false` because only `props` has a value for it, which defaults to `false`.
 
 - The `withSpacing` variation will be treated as the result of `Boolean(component.props.hasSpace || component.state.isSpaced)`, which was declared by the `variationMapping` argument. Even though `state` has a key named `withSpacing`, the variation mapping takes precendence.
+
+
+
+[create-styles-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/create.md
+[es6-decorator-url]: https://medium.com/google-developers/exploring-es7-decorators-76ecb65fb841
+[single-component-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/create.md#single-subcomponents
+[create-variation-url]: https://github.com/lemonmade/react-stylish/blob/master/docs/create.md#variations
